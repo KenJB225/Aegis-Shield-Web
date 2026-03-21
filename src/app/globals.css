@@ -40,7 +40,7 @@ textarea {
   font: inherit;
 }
 
-#root {
+.app-root {
   width: min(1380px, calc(100vw - 32px));
   margin: 16px auto;
 }

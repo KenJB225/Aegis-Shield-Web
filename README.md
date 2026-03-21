@@ -1,16 +1,36 @@
-# React + Vite
+# Aegis-Dry Web + Backend (Unified Next.js)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project now uses a single **Next.js** codebase for both:
 
-Currently, two official plugins are available:
+- Web frontend (super admin panel)
+- Backend API routes (device/admin endpoints)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Why this structure
 
-## React Compiler
+Frontend and backend live in one folder, so you can deploy and maintain one app:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- UI pages: `src/app/**`
+- API routes: `src/app/api/**`
+- Shared logic: add in `src/lib/**` (recommended)
 
-## Expanding the ESLint configuration
+## Scripts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run dev      # Start Next.js dev server
+npm run build    # Production build
+npm run start    # Run production server
+npm run lint     # ESLint
+```
+
+## Current routes
+
+- Web app: `http://localhost:3000/`
+- Health API: `GET /api/health`
+- Device instructions API: `GET /api/device/instructions?deviceId=...`
+
+## Recommended next integration steps
+
+1. Add Supabase clients in `src/lib/supabase/` (server and browser clients).
+2. Replace mock data in `src/App.jsx` with API calls to `/api/admin/*`.
+3. Implement weather + threshold logic in `src/app/api/device/instructions/route.js`.
+4. Add auth/role guards for admin-only routes.
