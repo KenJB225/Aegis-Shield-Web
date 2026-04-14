@@ -21,11 +21,16 @@ This document provides an overview of all setup guides and quick navigation for 
       │                    │                   │
       │              ┌─────▼────────────────────▼─────┐
       │              │   Unified Next.js API Routes   │
-      │              │      (same project folder)     │
+      │              │      (function gateway)        │
       │              └───────────────┬────────────────┘
-      │                    │                    │
-      └────────────────────┴────────────────────┘
-            │
+      │                              │
+      │                     ┌────────▼────────┐
+      │                     │ Supabase Edge   │
+      │                     │ Functions       │
+      │                     │ (backend logic) │
+      │                     └────────┬────────┘
+      └──────────────────────────────┴───────────────
+             │
         ┌─────────▼──────────┐
         │  Supabase (BaaS)   │
         │  - PostgreSQL DB   │
@@ -67,7 +72,10 @@ This document provides an overview of all setup guides and quick navigation for 
 - [ ] Implement authentication (login/signup)
 - [ ] Create state management providers (Riverpod)
 - [ ] Implement real-time database subscriptions
-- [ ] Implement direct table queries (no Next.js dependency)
+- [ ] Implement API client calls to Next.js routes
+- [ ] Validate that Next.js routes invoke Supabase Edge Functions
+- [ ] Enforce required Set Location flow before Home access
+- [ ] Add Settings -> Change Location flow and weather refresh behavior
 - [ ] Test on Android emulator/iOS simulator
 - [ ] **Go to:** [Flutter Mobile App Setup Guide](mobile_setup.instructions.md)
 
@@ -115,7 +123,8 @@ This document provides an overview of all setup guides and quick navigation for 
 - Supabase integration with Flutter
 - Authentication (signup, signin, password reset)
 - Real-time database subscriptions
-- Direct Supabase data access patterns
+- Next.js API integration patterns for Flutter
+- Edge Function invocation patterns from Next.js
 - State management with Riverpod
 - Models and services architecture
 - Testing and validation
@@ -216,6 +225,7 @@ This document provides an overview of all setup guides and quick navigation for 
 
 ### Mobile App (Flutter)
 ```dart
+MOBILE_API_BASE_URL=https://your-nextjs-app.vercel.app/api
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=eyJhbGc...
 OPENWEATHERMAP_API_KEY=your_api_key

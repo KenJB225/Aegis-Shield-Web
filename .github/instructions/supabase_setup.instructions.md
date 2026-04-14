@@ -709,15 +709,15 @@ NODE_ENV=development
 
 | Key | Scope | Use Case |
 |-----|-------|----------|
-| **Anon Key** | Client-side | Mobile app, Next.js API routes (with RLS policies for protection) |
-| **Service Role Key** | Server-side only | Next.js server-side code only, admin operations, database access |
+| **Anon Key** | Client-side | Mobile/web auth flows and approved realtime reads |
+| **Service Role Key** | Server-side only | Next.js API routes and Supabase Edge Functions for privileged backend logic |
 | **Project URL** | Both | Base endpoint for all requests |
 
 ### Security Best Practices
 1. **Never commit API keys** to version control
 2. **Use environment variables** for all sensitive data
 3. **Use Service Role Key only in Next.js server** (getServerSideProps, API routes, server actions)
-4. **Use Anon Key for the mobile app** (with RLS policies for protection)
+4. **Route mobile operational requests through Next.js API routes** instead of direct privileged table writes
 5. **Prefix public values with `NEXT_PUBLIC_`** in Next.js (these are exposed to browser)
 6. **Rotate keys regularly** in production environments
 7. **Use separate projects** for development and production
@@ -836,7 +836,7 @@ export const clientSide = (token) => {
 };
 ```
 
-### Step 5: Create API Route Example (src/app/api/device/instructions/route.js)
+### Step 5: Create API Route Example (Next.js route invoking Edge Function)
 ```javascript
 import { NextResponse } from 'next/server';
 import { serverClient } from '@/lib/supabase/client';
@@ -853,30 +853,25 @@ export async function GET(request) {
       );
     }
     
-    // Fetch device and user threshold
-    const { data: device, error: deviceError } = await serverClient
-      .from('devices')
-      .select('rain_threshold, user_id')
-      .eq('device_id', deviceId)
-      .single();
-    
-    if (deviceError || !device) {
+    // Next.js acts as gateway; edge function executes backend logic.
+    const { data, error } = await serverClient.functions.invoke('aegis-api', {
+      body: {
+        action: 'GET_DEVICE_INSTRUCTION',
+        deviceId,
+      },
+    });
+
+    if (error) {
       return NextResponse.json(
-        { error: 'Device not found' },
-        { status: 404 }
+        { error: error.message || 'Edge function invocation failed' },
+        { status: 500 }
       );
     }
     
-    // Fetch weather forecast (simplified - integrate OpenWeatherMap)
-    const rainProbability = 65; // Replace with actual API call
-    
-    // Determine command based on threshold
-    const command = rainProbability >= device.rain_threshold ? 'DOCK' : 'EXTEND';
-    
     return NextResponse.json({
-      command,
-      reason: `Rain probability ${rainProbability}% vs threshold ${device.rain_threshold}%`,
-      threshold: device.rain_threshold,
+      command: data.command,
+      reason: data.reason,
+      threshold: data.threshold,
     });
   } catch (error) {
     console.error('Error:', error);

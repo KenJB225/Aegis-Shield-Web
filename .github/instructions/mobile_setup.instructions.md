@@ -10,7 +10,7 @@ This guide provides comprehensive step-by-step instructions for setting up the A
 3. [Supabase Integration](#supabase-integration)
 4. [Authentication Setup](#authentication-setup)
 5. [Real-time Database Integration](#real-time-database-integration)
-6. [Direct Supabase Data Access](#direct-supabase-data-access)
+6. [Next.js API Integration (Edge Function Backend)](#nextjs-api-integration-edge-function-backend)
 7. [State Management](#state-management)
 8. [Project Structure](#project-structure)
 9. [Running the App](#running-the-app)
@@ -522,6 +522,21 @@ final isAuthenticatedProvider = StateProvider<bool>((ref) {
 });
 ```
 
+### Step 3: Enforce Location Before Main App Access
+
+After successful login, check whether user location is stored. If missing, route to a required `SetLocationScreen` and block navigation to Home until a valid location is saved.
+
+Minimum validation rules:
+- Location label is required.
+- Latitude must be between `-90` and `90`.
+- Longitude must be between `-180` and `180`.
+
+Recommended persistence:
+- Store location in local storage (`shared_preferences`) for startup checks.
+- Use the saved coordinates for weather/rain probability API requests.
+
+---
+
 ---
 
 ## Real-time Database Integration
@@ -621,54 +636,34 @@ final deviceProvider = FutureProvider.family<DeviceModel, String>((ref, deviceId
 
 ---
 
-## Direct Supabase Data Access
+## Next.js API Integration (Edge Function Backend)
 
-The mobile app does **not** depend on Next.js routes. It reads and writes directly to Supabase tables using the anon key and RLS policies.
+The mobile app uses Next.js API routes as its function layer. Those routes call Supabase Edge Functions for backend logic and privileged operations.
 
-### Step 1: Use Supabase Queries in Service Layer
+### Step 1: Create an API Client in the Mobile Service Layer
 
 ```dart
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dio/dio.dart';
 
 class MobileDataService {
-  final SupabaseClient client = Supabase.instance.client;
+  final Dio _dio = Dio(BaseOptions(baseUrl: 'https://your-nextjs-app.vercel.app/api'));
 
   Future<List<Map<String, dynamic>>> getSensorReadings(String deviceId) async {
-    final rows = await client
-        .from('sensor_readings')
-        .select()
-        .eq('device_id', deviceId)
-        .order('timestamp', ascending: false)
-        .limit(100);
-
-    return List<Map<String, dynamic>>.from(rows);
+    final response = await _dio.get('/sensor/$deviceId/latest');
+    return List<Map<String, dynamic>>.from(response.data['readings'] ?? []);
   }
 
   Future<List<Map<String, dynamic>>> getEventLogs(String deviceId) async {
-    final rows = await client
-        .from('event_logs')
-        .select()
-        .eq('device_id', deviceId)
-        .order('timestamp', ascending: false)
-        .limit(100);
-
-    return List<Map<String, dynamic>>.from(rows);
+    final response = await _dio.get('/device/$deviceId/logs');
+    return List<Map<String, dynamic>>.from(response.data['logs'] ?? []);
   }
 
   Future<void> updateRainThreshold(String deviceId, int threshold) async {
-    await client
-        .from('devices')
-        .update({'rain_threshold': threshold, 'updated_at': DateTime.now().toIso8601String()})
-        .eq('device_id', deviceId);
+    await _dio.put('/device/$deviceId/threshold', data: {'rain_threshold': threshold});
   }
 
   Future<void> sendManualOverride(String deviceId, String action) async {
-    await client.from('event_logs').insert({
-      'device_id': deviceId,
-      'event_type': 'MANUAL_OVERRIDE',
-      'action_taken': action,
-      'details': {'source': 'mobile_app'},
-    });
+    await _dio.post('/device/$deviceId/manual-override', data: {'action': action});
   }
 }
 ```
@@ -687,15 +682,34 @@ final sensorStream = Supabase.instance.client
     .eq('device_id', deviceId);
 ```
 
-### Step 3: Optional Server Logic Path
+### Step 2.1: Pass Location To Weather-Dependent Endpoints
 
-For privileged or computed operations, call Supabase **Edge Functions** or **RPC** instead of Next.js.
+For rain-probability decisions, include user coordinates in requests so OpenWeather responses are location-accurate:
 
 ```dart
-final result = await Supabase.instance.client.functions.invoke(
-  'compute_device_instruction',
-  body: {'device_id': deviceId},
+final response = await _dio.get(
+  '/device/instructions',
+  queryParameters: {
+    'deviceId': deviceId,
+    'lat': savedLocation.latitude,
+    'lon': savedLocation.longitude,
+  },
 );
+```
+
+### Step 3: Backend Execution Path
+
+Runtime flow:
+1. Flutter calls a Next.js API route.
+2. Next.js validates auth/role and request payload.
+3. Next.js invokes a Supabase Edge Function for business logic.
+4. Edge Function reads/writes Supabase and returns result to Next.js.
+5. Next.js returns response to Flutter.
+
+For direct server-to-edge invocations in Next.js:
+
+```dart
+// This call is performed in Next.js server code, not from Flutter.
 ```
 
 ---
@@ -823,7 +837,7 @@ flutter build ios --release
 
 ### Step 3: Test Device Communication
 1. Ensure Supabase project is online and keys are valid
-2. Fetch device status and sensor readings directly from Supabase
+2. Fetch device status and sensor readings through Next.js API routes
 3. Verify data displays correctly
 
 ### Step 4: Test Manual Override
@@ -835,6 +849,17 @@ flutter build ios --release
 1. View activity logs for a device
 2. Verify pagination and filtering work
 3. Check that logs display correct timestamps
+
+### Step 6: Test Required Location Flow
+1. Clear saved app data and launch app.
+2. Sign in with valid credentials.
+3. Verify app forces navigation to `Set Location` before Home.
+4. Save valid coordinates and verify Home now loads.
+
+### Step 7: Test Change Location From Settings
+1. Open Settings and select `Change Location`.
+2. Update coordinates and save.
+3. Verify weather/rain values update for the new location.
 
 ---
 

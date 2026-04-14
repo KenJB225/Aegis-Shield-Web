@@ -86,7 +86,7 @@ All tables have Row Level Security enabled to ensure users can only access their
 ### Key Policies
 1. **Users** can only view and edit their own `user_profiles` and `devices`
 2. **Users** can view `event_logs` and `sensor_readings` only for their devices
-3. **Service Role** (Next.js backend) can insert/update logs and sensor data
+3. **Service Role** (Next.js + Supabase Edge backend) can insert/update logs and sensor data
 4. **Super Admin** can view all `activity_logs` for auditing
 
 ---
@@ -120,8 +120,9 @@ auth.users (Supabase managed)
 See [supabase_setup.instructions.md](supabase_setup.instructions.md#environment-variables-setup) for complete environment variable configuration.
 
 **Minimum required for mobile app (Flutter):**
-- `SUPABASE_URL` - Project URL from Supabase dashboard
-- `SUPABASE_ANON_KEY` - Anon key for client-side access
+- `NEXT_PUBLIC_API_URL` (or `MOBILE_API_BASE_URL`) - Next.js API base URL
+- `SUPABASE_URL` - Required when mobile uses Supabase Auth/Realtime channels
+- `SUPABASE_ANON_KEY` - Required when mobile uses Supabase Auth/Realtime channels
 
 **Minimum required for web backend (Next.js):**
 - `NEXT_PUBLIC_SUPABASE_URL` - Project URL (public)

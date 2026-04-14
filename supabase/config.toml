@@ -1,0 +1,4 @@
+project_id = "aegis-shield-web"
+
+[functions.aegis-api]
+verify_jwt = false

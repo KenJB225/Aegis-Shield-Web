@@ -1,7 +1,7 @@
 # Tech Stack & Architecture
 
 ## Overview
-The Aegis-Dry system uses a hybrid architecture: the Flutter mobile app connects directly to Supabase, while a single unified Next.js project contains both the web superadmin UI and API middleware for device/server workflows.
+The Aegis-Dry system uses a hybrid architecture: the Flutter mobile app and web superadmin UI consume Next.js API routes, while backend business logic runs in Supabase Edge Functions backed by Supabase Auth/Database/Realtime.
 
 ## Frontend: Mobile Application
 * **Framework:** Flutter (Dart)
@@ -28,7 +28,11 @@ The Aegis-Dry system uses a hybrid architecture: the Flutter mobile app connects
 ## Backend: API & Middleware
 
 ### Architecture
-The backend is a **Next.js application** with API Routes that act as middleware for the web superadmin panel and device/server workflows against Supabase. It handles:
+The backend follows a two-layer model:
+- **Next.js API routes** are the integration/function gateway for mobile, web, and ESP32 clients.
+- **Supabase Edge Functions** execute core backend logic and privileged workflows.
+
+This layered backend handles:
 - Device communication and command processing
 - Weather forecast evaluation and decision logic
 - Data aggregation and transformation
@@ -36,14 +40,15 @@ The backend is a **Next.js application** with API Routes that act as middleware 
 - Real-time event broadcasting
 
 ### Technology Stack
-* **Framework:** Next.js (v13+ with App Router)
-* **Runtime:** Node.js (v16+)
-* **Language:** TypeScript (recommended) or JavaScript
+* **Function Gateway:** Next.js API Routes / Route Handlers
+* **Backend Runtime:** Supabase Edge Functions (Deno runtime)
+* **Gateway Runtime:** Node.js
+* **Language:** TypeScript
 * **Database Client:** @supabase/supabase-js
 * **External APIs:** OpenWeatherMap API
-* **Deployment:** Vercel (native Next.js hosting, recommended) or self-hosted Node.js
+* **Deployment:** Vercel/Node hosting for Next.js + Supabase Functions deployment for backend logic
 * **Authentication:** Supabase Auth + JWT tokens
-* **CORS:** Enabled for web dashboard and device clients that access API routes
+* **CORS:** Enabled for API consumers (web dashboard, device clients, and integrations)
 
 ### Project Structure
 ```
@@ -51,28 +56,16 @@ Aegis-Shield-Web/
 ├── src/app/
 │   ├── layout.jsx
 │   ├── page.jsx
-│   └── api/
-│       ├── health/route.js              # Health check endpoint
-│       ├── device/
-│       │   ├── instructions/route.js    # ESP32 command endpoint
-│       │   └── [deviceId]/
-│       │       ├── status/route.js
-│       │       ├── sensors/route.js
-│       │       ├── logs/route.js
-│       │       ├── threshold/route.js
-│       │       └── manual-override/route.js
-│       ├── sensor/
-│       │   └── [deviceId]/
-│       │       ├── latest/route.js
-│       │       └── history/route.js
-│       └── admin/
-│           ├── users/route.js
-│           ├── activity-logs/route.js
-│           └── dashboard/route.js
+│   └── api/                            # Function gateway routes
 ├── src/lib/
 │   ├── supabase/                        # Supabase clients (recommended)
 │   ├── middleware/                      # Auth/error middleware (recommended)
 │   └── services/                        # Business logic services (recommended)
+├── supabase/
+│   ├── config.toml
+│   └── functions/
+│       └── aegis-api/                   # Core backend logic (primary)
+│           └── index.ts                 # Route/action handlers executed at the edge
 ├── .env.local                           # Environment variables (not committed)
 ├── next.config.mjs                      # Next.js configuration
 ├── jsconfig.json                        # Path aliases/config
@@ -209,8 +202,8 @@ Aegis-Shield-Web/
 * **Setup Guide:** See [supabase_setup.instructions.md](supabase_setup.instructions.md)
 
 ### API Keys & Access
-- **Anon Key:** For client-side access (mobile app) - subject to RLS policies
-- **Service Role Key:** For backend server only (Next.js) - bypasses RLS
+- **Anon Key:** For client-side auth/session flows (mobile/web) and approved realtime reads
+- **Service Role Key:** For server/edge backend only (Next.js + Edge Functions) - bypasses RLS
 - Never expose Service Role Key in client-side code
 
 ## Frontend: Web Superadmin Panel

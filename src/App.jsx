@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import { edgeApi } from './lib/api/edgeClient'
 
 const initialUsers = [
   {
@@ -152,6 +154,18 @@ const initialLogs = [
 const trend = [8, 10, 7, 9, 12, 6, 7]
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseClient =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+        },
+      })
+    : null
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [identifier, setIdentifier] = useState('')
@@ -165,14 +179,26 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [recentActivity, setRecentActivity] = useState(initialRecentActivity)
   const [activityLogs, setActivityLogs] = useState(initialLogs)
+  const [authToken, setAuthToken] = useState('')
+  const [dashboardStats, setDashboardStats] = useState(null)
+  const [loadingRemoteData, setLoadingRemoteData] = useState(false)
+  const [dataError, setDataError] = useState('')
 
   const rowsPerPage = 8
 
   const counts = useMemo(() => {
+    if (dashboardStats) {
+      return {
+        total: dashboardStats.totalUsers,
+        active: dashboardStats.activeUsers,
+        inactive: dashboardStats.inactiveUsers,
+      }
+    }
+
     const total = users.length
     const active = users.filter((user) => user.status === 'Active').length
     return { total, active, inactive: total - active }
-  }, [users])
+  }, [users, dashboardStats])
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -243,16 +269,91 @@ function App() {
     ])
   }
 
-  const handleLogin = (event) => {
+  const loadRemoteAdminData = async (token) => {
+    setLoadingRemoteData(true)
+    setDataError('')
+    setUsers([])
+    setActivityLogs([])
+    setRecentActivity([])
+
+    try {
+      const [stats, usersResponse, logsResponse] = await Promise.all([
+        edgeApi.adminDashboard(token),
+        edgeApi.adminUsers(token, { page: 1, limit: 200 }),
+        edgeApi.adminActivityLogs(token, { page: 1, limit: 50 }),
+      ])
+
+      setDashboardStats(stats)
+
+      const mappedUsers = (usersResponse?.users || []).map((user, index) => ({
+        id: user.user_id || user.id || `USR-${index + 1}`,
+        name: user.full_name || 'Unknown User',
+        email: user.user_id || 'N/A',
+        status: user.is_active ? 'Active' : 'Inactive',
+        lastActive: user.created_at
+          ? new Date(user.created_at).toLocaleString()
+          : 'N/A',
+      }))
+
+      if (mappedUsers.length > 0) {
+        setUsers(mappedUsers)
+      }
+
+      const mappedLogs = (logsResponse?.logs || []).map((log, index) => ({
+        id: log.id || index + 1,
+        actor: log.actor_id || 'System',
+        event: log.action || 'Activity',
+        timestamp: log.created_at
+          ? new Date(log.created_at).toLocaleString()
+          : new Date().toLocaleString(),
+        type: log.resource_type || 'System',
+      }))
+
+      if (mappedLogs.length > 0) {
+        setActivityLogs(mappedLogs)
+        setRecentActivity(
+          mappedLogs.slice(0, 8).map((log) => ({
+            id: log.id,
+            name: log.actor,
+            action: log.event,
+            time: log.timestamp,
+            tone: 'success',
+          })),
+        )
+      }
+    } catch (error) {
+      setDataError(error?.message || 'Failed to load live admin data from Edge API.')
+      setUsers([])
+      setActivityLogs([])
+      setRecentActivity([])
+    } finally {
+      setLoadingRemoteData(false)
+    }
+  }
+
+  const handleLogin = async (event) => {
     event.preventDefault()
 
-    if (identifier.trim().toLowerCase() === 'admin' && password === 'admin123') {
-      setIsAuthenticated(true)
-      setLoginError('')
+    setLoginError('')
+
+    if (!supabaseClient) {
+      setLoginError('Supabase client is not configured. Check environment variables.')
       return
     }
 
-    setLoginError('Invalid credentials. Use admin / admin123.')
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: identifier.trim(),
+      password,
+    })
+
+    if (!error && data?.session?.access_token) {
+      setAuthToken(data.session.access_token)
+      setIsAuthenticated(true)
+      await loadRemoteAdminData(data.session.access_token)
+      return
+    }
+
+    setLoginError('Invalid credentials. Use a valid Supabase admin account.')
   }
 
   const handleToggleStatus = (userId) => {
@@ -289,8 +390,13 @@ function App() {
     addAuditLog('Admin', `Edited ${userName} profile`)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (supabaseClient && authToken) {
+      await supabaseClient.auth.signOut().catch(() => null)
+    }
+
     setIsAuthenticated(false)
+    setAuthToken('')
     setIdentifier('')
     setPassword('')
     setSearchQuery('')
@@ -298,6 +404,11 @@ function App() {
     setCurrentPage(1)
     setActivePage('Dashboard')
     setLoginError('')
+    setDashboardStats(null)
+    setDataError('')
+    setUsers(initialUsers)
+    setActivityLogs(initialLogs)
+    setRecentActivity(initialRecentActivity)
   }
 
   const selectPage = (page) => {
@@ -328,7 +439,7 @@ function App() {
               id="identifier"
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="admin"
+              placeholder="admin@yourdomain.com"
               autoComplete="username"
             />
 
@@ -338,7 +449,7 @@ function App() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="admin123"
+              placeholder="Enter your password"
               autoComplete="current-password"
             />
 
@@ -348,7 +459,6 @@ function App() {
               Sign in
             </button>
           </form>
-          <p className="mock-note">Mock credentials: admin / admin123</p>
         </div>
       </div>
     )
@@ -426,6 +536,8 @@ function App() {
             <section>
               <h1>Dashboard Overview</h1>
               <p className="subtitle">Monitor your Aegis-Dry system at a glance</p>
+              {loadingRemoteData ? <p className="subtitle">Loading live data from Edge API...</p> : null}
+              {dataError ? <p className="error-text">{dataError}</p> : null}
               <div className="metric-grid">
                 <article className="card metric-card">
                   <p>Total Users</p>
