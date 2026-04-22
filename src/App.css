@@ -212,6 +212,23 @@
   gap: 8px;
 }
 
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-label {
+  font-size: 12px;
+  color: var(--muted);
+  user-select: none;
+}
+
+.theme-label.active {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
 .topbar-tools input[type='search'] {
   height: 34px;
   border-radius: 999px;
@@ -603,6 +620,10 @@ th {
 
   .topbar-tools {
     width: 100%;
+  }
+
+  .theme-toggle {
+    margin-left: auto;
   }
 
   .topbar-tools input[type='search'] {

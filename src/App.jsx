@@ -513,21 +513,20 @@ function App() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
             />
-            <label className="switch" htmlFor="theme-switch">
-              <input
-                id="theme-switch"
-                type="checkbox"
-                checked={isDarkMode}
-                onChange={() => setIsDarkMode((prev) => !prev)}
-              />
-              <span />
-            </label>
-            <button type="button" className="icon-btn" aria-label="Alerts">
-              !
-            </button>
-            <button type="button" className="icon-btn" aria-label="Profile">
-              @
-            </button>
+            <div className="theme-toggle" title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+              <span className={`theme-label ${!isDarkMode ? 'active' : ''}`}>Light Mode</span>
+              <label className="switch" htmlFor="theme-switch">
+                <input
+                  id="theme-switch"
+                  type="checkbox"
+                  checked={isDarkMode}
+                  onChange={() => setIsDarkMode((prev) => !prev)}
+                  aria-label="Toggle dark mode"
+                />
+                <span />
+              </label>
+              <span className={`theme-label ${isDarkMode ? 'active' : ''}`}>Dark Mode</span>
+            </div>
           </div>
         </header>
 
