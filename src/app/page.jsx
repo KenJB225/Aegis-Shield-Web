@@ -1,12 +1,5 @@
-'use client'
-
-import App from '../App.jsx'
-import '../App.css'
+import { redirect } from 'next/navigation'
 
 export default function HomePage() {
-  return (
-    <div className="app-root">
-      <App />
-    </div>
-  )
+  redirect('/login')
 }
