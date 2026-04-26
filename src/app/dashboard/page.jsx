@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { edgeApi } from '../../lib/api/edgeClient'
 import styles from './page.module.css'
@@ -132,6 +133,8 @@ const supabaseClient =
     : null
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const [isAuthorized, setIsAuthorized] = useState(false)
   const [users, setUsers] = useState(initialUsers)
   const [recentActivity, setRecentActivity] = useState(initialRecentActivity)
   const [dashboardStats, setDashboardStats] = useState(null)
@@ -231,22 +234,23 @@ export default function DashboardPage() {
 
     const loadDashboardData = async () => {
       if (!supabaseClient) {
-        setDataError('Supabase client is not configured. Showing fallback dashboard data.')
+        router.replace('/login')
         return
       }
 
       const { data, error } = await supabaseClient.auth.getSession()
-      if (error) {
-        setDataError(error.message)
+      if (isCancelled) {
         return
       }
 
       const token = data?.session?.access_token
-      if (!token) {
-        setDataError('No active admin session found. Showing fallback dashboard data.')
+
+      if (error || !token) {
+        router.replace('/login')
         return
       }
 
+      setIsAuthorized(true)
       await loadRemoteAdminData(token)
     }
 
@@ -255,7 +259,18 @@ export default function DashboardPage() {
     return () => {
       isCancelled = true
     }
-  }, [])
+  }, [router])
+
+  if (!isAuthorized) {
+    return (
+      <main className={styles.pageView}>
+        <section>
+          <h1>Checking session...</h1>
+          <p className={styles.subtitle}>Redirecting to login if no valid session is found.</p>
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className={styles.pageView}>

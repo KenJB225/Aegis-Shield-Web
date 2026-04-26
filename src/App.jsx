@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { edgeApi } from './lib/api/edgeClient'
 
@@ -167,10 +167,6 @@ const supabaseClient =
     : null
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [identifier, setIdentifier] = useState('')
-  const [password, setPassword] = useState('')
-  const [loginError, setLoginError] = useState('')
   const [activePage, setActivePage] = useState('Dashboard')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All Status')
@@ -331,30 +327,32 @@ function App() {
     }
   }
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  useEffect(() => {
+    let isMounted = true
 
-    setLoginError('')
+    const hydrateSession = async () => {
+      if (!supabaseClient) {
+        setDataError('Supabase client is not configured. Check environment variables.')
+        return
+      }
 
-    if (!supabaseClient) {
-      setLoginError('Supabase client is not configured. Check environment variables.')
-      return
+      const { data, error } = await supabaseClient.auth.getSession()
+      const token = data?.session?.access_token
+
+      if (!isMounted || error || !token) {
+        return
+      }
+
+      setAuthToken(token)
+      await loadRemoteAdminData(token)
     }
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: identifier.trim(),
-      password,
-    })
+    hydrateSession()
 
-    if (!error && data?.session?.access_token) {
-      setAuthToken(data.session.access_token)
-      setIsAuthenticated(true)
-      await loadRemoteAdminData(data.session.access_token)
-      return
+    return () => {
+      isMounted = false
     }
-
-    setLoginError('Invalid credentials. Use a valid Supabase admin account.')
-  }
+  }, [])
 
   const handleToggleStatus = (userId) => {
     let changedUserName = ''
@@ -391,24 +389,21 @@ function App() {
   }
 
   const handleLogout = async () => {
-    if (supabaseClient && authToken) {
+    if (supabaseClient) {
       await supabaseClient.auth.signOut().catch(() => null)
     }
 
-    setIsAuthenticated(false)
     setAuthToken('')
-    setIdentifier('')
-    setPassword('')
     setSearchQuery('')
     setStatusFilter('All Status')
     setCurrentPage(1)
     setActivePage('Dashboard')
-    setLoginError('')
     setDashboardStats(null)
     setDataError('')
     setUsers(initialUsers)
     setActivityLogs(initialLogs)
     setRecentActivity(initialRecentActivity)
+    window.location.assign('/login')
   }
 
   const selectPage = (page) => {
@@ -422,46 +417,6 @@ function App() {
       const safePage = Math.min(totalPages, Math.max(1, nextPage))
       return safePage === prev ? prev : safePage
     })
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="login-shell">
-        <div className="login-panel">
-          <p className="eyebrow">Aegis-Dry</p>
-          <h1>Super Admin Login</h1>
-          <p className="subtext">
-            Access the admin dashboard and manage users, activity logs, and system settings.
-          </p>
-          <form onSubmit={handleLogin} className="login-form">
-            <label htmlFor="identifier">Username or Email</label>
-            <input
-              id="identifier"
-              value={identifier}
-              onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="admin@yourdomain.com"
-              autoComplete="username"
-            />
-
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-            />
-
-            {loginError ? <p className="error-text">{loginError}</p> : null}
-
-            <button type="submit" className="primary-btn">
-              Sign in
-            </button>
-          </form>
-        </div>
-      </div>
-    )
   }
 
   return (
