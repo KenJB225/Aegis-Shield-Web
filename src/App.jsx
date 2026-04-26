@@ -174,8 +174,8 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [recentActivity, setRecentActivity] = useState(initialRecentActivity)
-  const [activityLogs, setActivityLogs] = useState(initialLogs)
-  const [authToken, setAuthToken] = useState('')
+  const [, setActivityLogs] = useState(initialLogs)
+  const [, setAuthToken] = useState('')
   const [dashboardStats, setDashboardStats] = useState(null)
   const [loadingRemoteData, setLoadingRemoteData] = useState(false)
   const [dataError, setDataError] = useState('')
@@ -431,7 +431,7 @@ function App() {
         </div>
 
         <nav className="menu">
-          {['Dashboard', 'Users', 'Activity Logs', 'Settings'].map((item) => (
+          {['Dashboard', 'Users'].map((item) => (
             <button
               key={item}
               type="button"
@@ -632,97 +632,6 @@ function App() {
                     </button>
                   </div>
                 </footer>
-              </article>
-            </section>
-          ) : null}
-
-          {activePage === 'Activity Logs' ? (
-            <section>
-              <h1>Activity Logs</h1>
-              <p className="subtitle">Track system and user actions in chronological order</p>
-              <article className="card logs-card">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Actor</th>
-                      <th>Event</th>
-                      <th>Type</th>
-                      <th>Timestamp</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activityLogs.map((log) => (
-                      <tr key={log.id}>
-                        <td>{log.actor}</td>
-                        <td>{log.event}</td>
-                        <td>{log.type}</td>
-                        <td>{log.timestamp}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </article>
-            </section>
-          ) : null}
-
-          {activePage === 'Settings' ? (
-            <section>
-              <h1>Settings</h1>
-              <p className="subtitle">Manage your admin preferences and system configuration</p>
-
-              <article className="card setting-block">
-                <header>
-                  <p className="card-title">Appearance</p>
-                  <small>Customize the visual appearance of the admin panel</small>
-                </header>
-                <div className="setting-row">
-                  <div>
-                    <strong>Dark Mode</strong>
-                    <p>Switch between light and dark theme</p>
-                  </div>
-                  <label className="switch" htmlFor="appearance-switch">
-                    <input
-                      id="appearance-switch"
-                      type="checkbox"
-                      checked={isDarkMode}
-                      onChange={() => setIsDarkMode((prev) => !prev)}
-                    />
-                    <span />
-                  </label>
-                </div>
-                <p className="theme-line">
-                  Current Theme: <strong>{isDarkMode ? 'Dark Mode' : 'Light Mode'}</strong>
-                </p>
-              </article>
-
-              <article className="card setting-block">
-                <header>
-                  <p className="card-title">Admin Profile</p>
-                  <small>Your administrator account information</small>
-                </header>
-                <div className="profile-grid">
-                  <p>Role</p>
-                  <strong>Super Administrator</strong>
-                  <p>Email</p>
-                  <strong>admin@aegis-dry.com</strong>
-                  <p>Last Login</p>
-                  <strong>{new Date().toLocaleString()}</strong>
-                  <p>Access Level</p>
-                  <strong>Full Access</strong>
-                </div>
-              </article>
-
-              <article className="card setting-block">
-                <header>
-                  <p className="card-title">System Information</p>
-                  <small>Aegis-Dry admin panel details</small>
-                </header>
-                <div className="profile-grid">
-                  <p>System Name</p>
-                  <strong>Aegis-Dry Smart Laundry</strong>
-                  <p>Version</p>
-                  <strong>v1.0.0</strong>
-                </div>
               </article>
             </section>
           ) : null}
