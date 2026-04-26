@@ -429,8 +429,7 @@
   background: #dc2626;
 }
 
-.table-card,
-.logs-card {
+.table-card {
   overflow: auto;
 }
 
@@ -560,56 +559,6 @@ th {
   height: 30px;
   padding: 0 10px;
   cursor: pointer;
-}
-
-.setting-block {
-  margin-bottom: 12px;
-  padding: 14px;
-}
-
-.setting-block header {
-  margin-bottom: 10px;
-}
-
-.setting-block header small {
-  color: var(--muted);
-}
-
-.setting-row {
-  border: 1px solid var(--edge);
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.setting-row p {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.theme-line {
-  margin: 10px 0 0;
-  color: var(--ink-soft);
-}
-
-.profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.profile-grid p,
-.profile-grid strong {
-  margin: 0;
-  border-bottom: 1px solid var(--edge);
-  padding-bottom: 8px;
-}
-
-.profile-grid p {
-  color: var(--muted);
 }
 
 @media (max-width: 980px) {
