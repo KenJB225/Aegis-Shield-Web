@@ -6,7 +6,20 @@ import { createClient } from '@supabase/supabase-js'
 import '../../App.css'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  ''
+const missingSupabaseEnvVars = [
+  !supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+  !supabaseAnonKey
+    ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+    : null,
+].filter(Boolean)
+const supabaseEnvErrorMessage =
+  missingSupabaseEnvVars.length > 0
+    ? `Supabase client is not configured. Missing ${missingSupabaseEnvVars.join(', ')}. If you updated .env.local, restart the dev server.`
+    : ''
 const supabaseClient =
   supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey, {
@@ -29,7 +42,7 @@ export default function LoginPage() {
     setLoginError('')
 
     if (!supabaseClient) {
-      setLoginError('Supabase client is not configured. Check environment variables.')
+      setLoginError(supabaseEnvErrorMessage)
       return
     }
 

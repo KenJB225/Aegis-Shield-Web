@@ -155,7 +155,20 @@ const trend = [8, 10, 7, 9, 12, 6, 7]
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  ''
+const missingSupabaseEnvVars = [
+  !supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+  !supabaseAnonKey
+    ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+    : null,
+].filter(Boolean)
+const supabaseEnvErrorMessage =
+  missingSupabaseEnvVars.length > 0
+    ? `Supabase client is not configured. Missing ${missingSupabaseEnvVars.join(', ')}. If you updated .env.local, restart the dev server.`
+    : ''
 const supabaseClient =
   supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey, {
@@ -332,7 +345,7 @@ function App() {
 
     const hydrateSession = async () => {
       if (!supabaseClient) {
-        setDataError('Supabase client is not configured. Check environment variables.')
+        setDataError(supabaseEnvErrorMessage)
         return
       }
 

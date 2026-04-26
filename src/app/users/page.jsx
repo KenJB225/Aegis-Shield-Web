@@ -1,88 +1,99 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import { edgeApi } from '../../lib/api/edgeClient'
 import '../../App.css'
 
-const initialUsers = [
-  {
-    id: 'USR-001',
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 2:30:00 PM',
-  },
-  {
-    id: 'USR-002',
-    name: 'Michael Chen',
-    email: 'michael.chen@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 1:45:00 PM',
-  },
-  {
-    id: 'USR-003',
-    name: 'Emily Rodriguez',
-    email: 'emily.rodriguez@example.com',
-    status: 'Inactive',
-    lastActive: '3/10/2026, 8:20:00 AM',
-  },
-  {
-    id: 'USR-004',
-    name: 'David Kim',
-    email: 'david.kim@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 2:15:00 PM',
-  },
-  {
-    id: 'USR-005',
-    name: 'Jessica Taylor',
-    email: 'jessica.taylor@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 12:30:00 PM',
-  },
-  {
-    id: 'USR-006',
-    name: 'Robert Martinez',
-    email: 'robert.martinez@example.com',
-    status: 'Inactive',
-    lastActive: '2/28/2026, 10:00:00 AM',
-  },
-  {
-    id: 'USR-007',
-    name: 'Amanda Wilson',
-    email: 'amanda.wilson@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 2:00:00 PM',
-  },
-  {
-    id: 'USR-008',
-    name: 'James Anderson',
-    email: 'james.anderson@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 11:20:00 AM',
-  },
-  {
-    id: 'USR-009',
-    name: 'Lisa Thompson',
-    email: 'lisa.thompson@example.com',
-    status: 'Inactive',
-    lastActive: '3/5/2026, 9:15:00 AM',
-  },
-  {
-    id: 'USR-010',
-    name: 'Noah Reyes',
-    email: 'noah.reyes@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 10:10:00 AM',
-  },
-]
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  ''
+const supabaseClient =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+        },
+      })
+    : null
 
 export default function UsersPage() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [dataError, setDataError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All Status')
-  const [users, setUsers] = useState(initialUsers)
+  const [users, setUsers] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
 
   const rowsPerPage = 8
+
+  useEffect(() => {
+    let isCancelled = false
+
+    const loadUsers = async () => {
+      setIsLoading(true)
+      setDataError('')
+
+      if (!supabaseClient) {
+        if (!isCancelled) {
+          setDataError('Supabase client is not configured.')
+          setIsLoading(false)
+        }
+        return
+      }
+
+      const { data, error } = await supabaseClient.auth.getSession()
+      const token = data?.session?.access_token
+
+      if (isCancelled) {
+        return
+      }
+
+      if (error || !token) {
+        setDataError('Sign in again to load users from Supabase.')
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const response = await edgeApi.adminUsers(token, { page: 1, limit: 200 })
+
+        if (!isCancelled) {
+          const mappedUsers = (response?.users || []).map((user, index) => ({
+            id: user.user_id || user.id || `USR-${index + 1}`,
+            name: user.full_name || 'Unnamed User',
+            email: user.email || user.user_id || 'N/A',
+            status: user.is_active ? 'Active' : 'Inactive',
+            lastActive: user.updated_at
+              ? new Date(user.updated_at).toLocaleString()
+              : user.created_at
+                ? new Date(user.created_at).toLocaleString()
+                : 'N/A',
+          }))
+
+          setUsers(mappedUsers)
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setDataError(error?.message || 'Failed to load users from Supabase.')
+          setUsers([])
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadUsers()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -171,45 +182,55 @@ export default function UsersPage() {
               </select>
             </header>
 
-            <table>
-              <thead>
-                <tr>
-                  <th>User ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                  <th>Last Active</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.id}</td>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span className={user.status === 'Active' ? 'pill active' : 'pill inactive'}>
-                        {user.status}
-                      </span>
-                    </td>
-                    <td>{user.lastActive}</td>
-                    <td>
-                      <div className="row-actions">
-                        <button type="button">Edit</button>
-                        <button
-                          type="button"
-                          className={user.status === 'Active' ? 'danger' : 'success'}
-                          onClick={() => handleToggleStatus(user.id)}
-                        >
-                          {user.status === 'Active' ? 'Disable' : 'Enable'}
-                        </button>
-                      </div>
-                    </td>
+            <div className="table-scroll" role="region" aria-label="Users table" tabIndex={0}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Last Active</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={5}>Loading users from Supabase...</td>
+                    </tr>
+                  ) : visibleUsers.length > 0 ? (
+                    visibleUsers.map((user) => (
+                      <tr key={user.id}>
+                        <td>{user.name}</td>
+                        <td>{user.email}</td>
+                        <td>
+                          <span className={user.status === 'Active' ? 'pill active' : 'pill inactive'}>
+                            {user.status}
+                          </span>
+                        </td>
+                        <td>{user.lastActive}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button type="button">Edit</button>
+                            <button
+                              type="button"
+                              className={user.status === 'Active' ? 'danger' : 'success'}
+                              onClick={() => handleToggleStatus(user.id)}
+                            >
+                              {user.status === 'Active' ? 'Disable' : 'Enable'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5}>No users found in Supabase.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
             <footer>
               <p>
@@ -225,6 +246,7 @@ export default function UsersPage() {
               </div>
             </footer>
           </article>
+          {dataError ? <p className="subtitle">{dataError}</p> : null}
         </section>
       </main>
     </div>

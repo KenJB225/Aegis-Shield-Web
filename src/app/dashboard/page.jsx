@@ -6,122 +6,17 @@ import { createClient } from '@supabase/supabase-js'
 import { edgeApi } from '../../lib/api/edgeClient'
 import styles from './page.module.css'
 
-const initialUsers = [
-  {
-    id: 'USR-001',
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 2:30:00 PM',
-  },
-  {
-    id: 'USR-002',
-    name: 'Michael Chen',
-    email: 'michael.chen@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 1:45:00 PM',
-  },
-  {
-    id: 'USR-003',
-    name: 'Emily Rodriguez',
-    email: 'emily.rodriguez@example.com',
-    status: 'Inactive',
-    lastActive: '3/10/2026, 8:20:00 AM',
-  },
-  {
-    id: 'USR-004',
-    name: 'David Kim',
-    email: 'david.kim@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 2:15:00 PM',
-  },
-  {
-    id: 'USR-005',
-    name: 'Jessica Taylor',
-    email: 'jessica.taylor@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 12:30:00 PM',
-  },
-  {
-    id: 'USR-006',
-    name: 'Robert Martinez',
-    email: 'robert.martinez@example.com',
-    status: 'Inactive',
-    lastActive: '2/28/2026, 10:00:00 AM',
-  },
-  {
-    id: 'USR-007',
-    name: 'Amanda Wilson',
-    email: 'amanda.wilson@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 2:00:00 PM',
-  },
-  {
-    id: 'USR-008',
-    name: 'James Anderson',
-    email: 'james.anderson@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 11:20:00 AM',
-  },
-  {
-    id: 'USR-009',
-    name: 'Lisa Thompson',
-    email: 'lisa.thompson@example.com',
-    status: 'Inactive',
-    lastActive: '3/5/2026, 9:15:00 AM',
-  },
-  {
-    id: 'USR-010',
-    name: 'Noah Reyes',
-    email: 'noah.reyes@example.com',
-    status: 'Active',
-    lastActive: '3/17/2026, 10:10:00 AM',
-  },
-]
+const initialUsers = []
+const initialRecentActivity = []
 
-const initialRecentActivity = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    action: 'Logged in',
-    time: '3/17/2026, 2:30:00 PM',
-    tone: 'success',
-  },
-  {
-    id: 2,
-    name: 'David Kim',
-    action: 'Profile updated',
-    time: '3/17/2026, 2:15:00 PM',
-    tone: 'success',
-  },
-  {
-    id: 3,
-    name: 'Amanda Wilson',
-    action: 'Logged in',
-    time: '3/17/2026, 2:00:00 PM',
-    tone: 'success',
-  },
-  {
-    id: 4,
-    name: 'Michael Chen',
-    action: 'Password changed',
-    time: '3/17/2026, 1:45:00 PM',
-    tone: 'success',
-  },
-  {
-    id: 5,
-    name: 'Robert Martinez',
-    action: 'Failed login attempt',
-    time: '3/17/2026, 1:30:00 PM',
-    tone: 'danger',
-  },
-]
-
-const trend = [8, 10, 7, 9, 12, 6, 7]
+const trend = []
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  ''
 const supabaseClient =
   supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey, {
@@ -156,6 +51,10 @@ export default function DashboardPage() {
   }, [users, dashboardStats])
 
   const chartPath = useMemo(() => {
+    if (trend.length === 0) {
+      return ''
+    }
+
     const max = Math.max(...trend)
     const min = Math.min(...trend)
     const width = 560
@@ -302,20 +201,24 @@ export default function DashboardPage() {
         <div className={styles.dashboardGrid}>
           <article className={`${styles.card} ${styles.chartCard}`}>
             <p className={styles.cardTitle}>User Activity Trend</p>
-            <svg viewBox="0 0 560 260" role="img" aria-label="User activity chart">
-              <g className={styles.gridLines}>
-                {[0, 1, 2, 3, 4].map((line) => (
-                  <line
-                    key={line}
-                    x1="0"
-                    x2="560"
-                    y1={24 + line * 48}
-                    y2={24 + line * 48}
-                  />
-                ))}
-              </g>
-              <path d={chartPath} className={styles.linePath} />
-            </svg>
+            {trend.length > 0 ? (
+              <svg viewBox="0 0 560 260" role="img" aria-label="User activity chart">
+                <g className={styles.gridLines}>
+                  {[0, 1, 2, 3, 4].map((line) => (
+                    <line
+                      key={line}
+                      x1="0"
+                      x2="560"
+                      y1={24 + line * 48}
+                      y2={24 + line * 48}
+                    />
+                  ))}
+                </g>
+                <path d={chartPath} className={styles.linePath} />
+              </svg>
+            ) : (
+              <p className={styles.emptyState}>No activity trend data found in Supabase.</p>
+            )}
             <div className={styles.dayRow}>
               {days.map((day) => (
                 <span key={day}>{day}</span>
@@ -325,22 +228,26 @@ export default function DashboardPage() {
 
           <article className={`${styles.card} ${styles.activityCard}`}>
             <p className={styles.cardTitle}>Recent Activity</p>
-            <ul>
-              {recentActivity.slice(0, 5).map((activity) => (
-                <li key={activity.id}>
-                  <span
-                    className={`${styles.dot} ${
-                      activity.tone === 'danger' ? styles.dotDanger : styles.dotSuccess
-                    }`}
-                  />
-                  <div>
-                    <strong>{activity.name}</strong>
-                    <p>{activity.action}</p>
-                    <small>{activity.time}</small>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {recentActivity.length > 0 ? (
+              <ul>
+                {recentActivity.slice(0, 5).map((activity) => (
+                  <li key={activity.id}>
+                    <span
+                      className={`${styles.dot} ${
+                        activity.tone === 'danger' ? styles.dotDanger : styles.dotSuccess
+                      }`}
+                    />
+                    <div>
+                      <strong>{activity.name}</strong>
+                      <p>{activity.action}</p>
+                      <small>{activity.time}</small>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.emptyState}>No recent activity found in Supabase.</p>
+            )}
           </article>
         </div>
       </section>

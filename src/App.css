@@ -430,7 +430,13 @@
 }
 
 .table-card {
-  overflow: auto;
+  overflow: hidden;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .users-route-root {

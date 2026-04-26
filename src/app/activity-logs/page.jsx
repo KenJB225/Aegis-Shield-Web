@@ -1,47 +1,93 @@
 'use client'
 
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import { edgeApi } from '../../lib/api/edgeClient'
 import styles from './activity-logs.module.css'
 
-const initialLogs = [
-  {
-    id: 1,
-    actor: 'Admin',
-    event: 'Opened dashboard',
-    timestamp: '3/20/2026, 8:10:00 AM',
-    type: 'System',
-  },
-  {
-    id: 2,
-    actor: 'Sarah Johnson',
-    event: 'User login',
-    timestamp: '3/17/2026, 2:30:00 PM',
-    type: 'User',
-  },
-  {
-    id: 3,
-    actor: 'David Kim',
-    event: 'Profile updated',
-    timestamp: '3/17/2026, 2:15:00 PM',
-    type: 'User',
-  },
-  {
-    id: 4,
-    actor: 'Admin',
-    event: 'Viewed inactive users',
-    timestamp: '3/20/2026, 8:15:00 AM',
-    type: 'Admin',
-  },
-  {
-    id: 5,
-    actor: 'Robert Martinez',
-    event: 'Failed login attempt',
-    timestamp: '3/17/2026, 1:30:00 PM',
-    type: 'Security',
-  },
-]
-
 export default function ActivityLogsPage() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [dataError, setDataError] = useState('')
+  const [logs, setLogs] = useState([])
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    ''
+  const supabaseClient =
+    supabaseUrl && supabaseAnonKey
+      ? createClient(supabaseUrl, supabaseAnonKey, {
+          auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+          },
+        })
+      : null
+
+  useEffect(() => {
+    let isCancelled = false
+
+    const loadLogs = async () => {
+      setIsLoading(true)
+      setDataError('')
+
+      if (!supabaseClient) {
+        if (!isCancelled) {
+          setDataError('Supabase client is not configured.')
+          setIsLoading(false)
+        }
+        return
+      }
+
+      const { data, error } = await supabaseClient.auth.getSession()
+      const token = data?.session?.access_token
+
+      if (isCancelled) {
+        return
+      }
+
+      if (error || !token) {
+        setDataError('Sign in again to load activity logs from Supabase.')
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const response = await edgeApi.adminActivityLogs(token, { page: 1, limit: 200 })
+
+        if (!isCancelled) {
+          const mappedLogs = (response?.logs || []).map((log, index) => ({
+            id: log.id || index + 1,
+            actor: log.actor_id || 'System',
+            event: log.action || 'Activity',
+            timestamp: log.created_at
+              ? new Date(log.created_at).toLocaleString()
+              : new Date().toLocaleString(),
+            type: log.resource_type || 'System',
+          }))
+
+          setLogs(mappedLogs)
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setDataError(error?.message || 'Failed to load activity logs from Supabase.')
+          setLogs([])
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadLogs()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -49,10 +95,6 @@ export default function ActivityLogsPage() {
           <h1>Activity Logs</h1>
           <p>Track system and user actions in chronological order</p>
         </div>
-        <nav className={styles.links}>
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/settings">Settings</Link>
-        </nav>
       </header>
 
       <article className={styles.card}>
@@ -66,17 +108,28 @@ export default function ActivityLogsPage() {
             </tr>
           </thead>
           <tbody>
-            {initialLogs.map((log) => (
-              <tr key={log.id}>
-                <td>{log.actor}</td>
-                <td>{log.event}</td>
-                <td>{log.type}</td>
-                <td>{log.timestamp}</td>
+            {isLoading ? (
+              <tr>
+                <td colSpan={4}>Loading activity logs from Supabase...</td>
               </tr>
-            ))}
+            ) : logs.length > 0 ? (
+              logs.map((log) => (
+                <tr key={log.id}>
+                  <td>{log.actor}</td>
+                  <td>{log.event}</td>
+                  <td>{log.type}</td>
+                  <td>{log.timestamp}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4}>No activity logs found in Supabase.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </article>
+      {dataError ? <p className={styles.error}>{dataError}</p> : null}
     </main>
   )
 }

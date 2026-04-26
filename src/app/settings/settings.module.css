@@ -30,23 +30,6 @@
   color: var(--muted);
 }
 
-.links {
-  display: flex;
-  gap: 10px;
-}
-
-.links a {
-  text-decoration: none;
-  border: 1px solid var(--edge);
-  background: var(--panel);
-  color: var(--ink-soft);
-  border-radius: 999px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 14px;
-}
-
 .card {
   border: 1px solid var(--edge);
   border-radius: 12px;

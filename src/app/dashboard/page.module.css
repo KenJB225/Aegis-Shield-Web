@@ -66,6 +66,12 @@
   font-weight: 600;
 }
 
+.emptyState {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .chartCard {
   padding: 12px;
 }

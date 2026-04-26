@@ -1,4 +1,5 @@
 import './globals.css'
+import FixedNav from './FixedNav'
 
 export const metadata = {
   title: 'Aegis-Dry Admin Panel',
@@ -8,7 +9,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <FixedNav />
+        {children}
+      </body>
     </html>
   )
 }

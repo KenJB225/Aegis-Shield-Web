@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import styles from './settings.module.css'
 
 export default function SettingsPage() {
@@ -14,10 +13,6 @@ export default function SettingsPage() {
           <h1>Settings</h1>
           <p>Manage your admin preferences and system configuration</p>
         </div>
-        <nav className={styles.links}>
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/activity-logs">Activity Logs</Link>
-        </nav>
       </header>
 
       <article className={styles.card}>
