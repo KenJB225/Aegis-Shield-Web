@@ -13,6 +13,10 @@ const NAV_ITEMS = [
 export default function FixedNav() {
   const pathname = usePathname()
 
+  if (pathname === '/login') {
+    return null
+  }
+
   return (
     <nav className="fixed-nav" aria-label="Primary page navigation">
       {NAV_ITEMS.map((item) => {
