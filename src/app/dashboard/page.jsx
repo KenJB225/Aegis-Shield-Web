@@ -83,8 +83,14 @@ export default function DashboardPage() {
       try {
         const [stats, usersResponse, logsResponse] = await Promise.all([
           edgeApi.adminDashboard(token),
-          edgeApi.adminUsers(token, { page: 1, limit: 200 }),
-          edgeApi.adminActivityLogs(token, { page: 1, limit: 50 }),
+          edgeApi.adminUsers(token, {
+            page: 1,
+            limit: 200,
+          }),
+          edgeApi.adminActivityLogs(token, {
+            page: 1,
+            limit: 50,
+          }),
         ])
 
         if (isCancelled) {

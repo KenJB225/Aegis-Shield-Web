@@ -50,7 +50,7 @@ export default function LoginPage() {
 
     const { data, error } = await supabaseClient.auth.signInWithPassword({
       email: identifier.trim(),
-      password,
+      password: password,
     })
 
     if (!error && data?.session?.access_token) {

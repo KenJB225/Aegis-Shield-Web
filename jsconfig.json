@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": "."
-  }
+    "baseUrl": ".",
+    "lib": [
+      "ES2015",
+      "DOM",
+    ],
+  },
 }
