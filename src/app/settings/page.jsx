@@ -20,6 +20,12 @@ const supabaseClient =
       })
     : null
 
+const AUTH_COOKIE_NAME = 'aegis_admin_token'
+
+const clearAuthCookie = () => {
+  document.cookie = `${AUTH_COOKIE_NAME}=; path=/; samesite=lax; max-age=0`
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -46,6 +52,7 @@ export default function SettingsPage() {
       return
     }
 
+    clearAuthCookie()
     router.replace('/login')
   }
 
