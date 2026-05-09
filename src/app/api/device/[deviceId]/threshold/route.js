@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerClient, serverConfigError } from '../../../../../lib/api/common'
+import { getServerClient, serverConfigError } from '@api/common'
 
 export async function PUT(request, { params }) {
   const client = getServerClient()

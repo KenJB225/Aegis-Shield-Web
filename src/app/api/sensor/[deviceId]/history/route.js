@@ -3,7 +3,7 @@ import {
   getServerClient,
   serverConfigError,
   toBoundedInt,
-} from '../../../../../lib/api/common'
+} from '@api/common'
 
 export async function GET(request, { params }) {
   const client = getServerClient()

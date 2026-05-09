@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { serverClient } from '../supabase/client'
+import { serverClient } from '@supabase/supabase/client'
 
 export function serverConfigError() {
   return NextResponse.json(

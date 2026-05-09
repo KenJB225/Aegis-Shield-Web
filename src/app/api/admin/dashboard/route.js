@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { withAuth } from '../../../../lib/middleware/auth'
-import { getServerClient, serverConfigError } from '../../../../lib/api/common'
+import { withAuth } from '@middleware/auth'
+import { getServerClient, serverConfigError } from '@api/common'
 
 async function getDashboardStats() {
   const client = getServerClient()

@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { withAuth } from '../../../../lib/middleware/auth'
+import { withAuth } from '@middleware/auth'
 import {
   getServerClient,
   serverConfigError,
   toBoundedInt,
   toPositiveInt,
-} from '../../../../lib/api/common'
+} from '@api/common'
 
 async function getUsers(request) {
   const client = getServerClient()
