@@ -59,7 +59,10 @@ export default function UsersPage() {
       }
 
       try {
-        const response = await edgeApi.adminUsers(token, { page: 1, limit: 200 })
+        const response = await edgeApi.adminUsers(token, {
+          page: 1,
+          limit: 200,
+        })
 
         if (!isCancelled) {
           const mappedUsers = (response?.users || []).map((user, index) => ({
