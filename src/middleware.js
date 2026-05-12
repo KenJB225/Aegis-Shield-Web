@@ -15,5 +15,10 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/users/:path*', '/activity-logs/:path*', '/settings/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/users/:path*',
+    '/activity-logs/:path*',
+    '/settings/:path*',
+  ],
 }
