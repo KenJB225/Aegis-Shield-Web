@@ -30,6 +30,21 @@ const supabaseClient =
       })
     : null
 
+const AUTH_COOKIE_NAME = 'aegis_admin_token'
+
+const setAuthCookie = (token, expiresAtSeconds) => {
+  if (!token) {
+    return
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  const maxAge = Math.max(0, (expiresAtSeconds || nowSeconds + 3600) - nowSeconds)
+  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:'
+  const secureFlag = secure ? '; secure' : ''
+
+  document.cookie = `${AUTH_COOKIE_NAME}=${token}; path=/; samesite=lax; max-age=${maxAge}${secureFlag}`
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [identifier, setIdentifier] = useState('')
@@ -54,6 +69,7 @@ export default function LoginPage() {
     })
 
     if (!error && data?.session?.access_token) {
+      setAuthCookie(data.session.access_token, data.session.expires_at)
       router.push('/dashboard')
       return
     }
