@@ -50,7 +50,28 @@ export default function LoginPage() {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({ identifier: '', password: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleIdentifierChange = (event) => {
+    setIdentifier(event.target.value)
+    if (loginError) {
+      setLoginError('')
+    }
+    if (fieldErrors.identifier) {
+      setFieldErrors((prev) => ({ ...prev, identifier: '' }))
+    }
+  }
+
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value)
+    if (loginError) {
+      setLoginError('')
+    }
+    if (fieldErrors.password) {
+      setFieldErrors((prev) => ({ ...prev, password: '' }))
+    }
+  }
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -59,6 +80,21 @@ export default function LoginPage() {
     if (!supabaseClient) {
       setLoginError(supabaseEnvErrorMessage)
       return
+    }
+
+    const trimmedIdentifier = identifier.trim()
+    const nextErrors = {
+      identifier: trimmedIdentifier ? '' : 'Enter your admin email address.',
+      password: password ? '' : 'Enter your password.',
+    }
+
+    if (nextErrors.identifier || nextErrors.password) {
+      setFieldErrors(nextErrors)
+      return
+    }
+
+    if (fieldErrors.identifier || fieldErrors.password) {
+      setFieldErrors({ identifier: '', password: '' })
     }
 
     setIsSubmitting(true)
@@ -74,7 +110,16 @@ export default function LoginPage() {
       return
     }
 
-    setLoginError('Invalid credentials. Use a valid Supabase admin account.')
+    const normalizedMessage = error?.message?.toLowerCase() || ''
+    if (normalizedMessage.includes('invalid') && normalizedMessage.includes('credentials')) {
+      setFieldErrors({
+        identifier: 'Check the email address for your admin account.',
+        password: 'Check the password for your admin account.',
+      })
+      setLoginError('Email or password is incorrect.')
+    } else {
+      setLoginError(error?.message || 'Sign in failed. Please try again.')
+    }
     setIsSubmitting(false)
   }
 
@@ -91,22 +136,42 @@ export default function LoginPage() {
           <input
             id="identifier"
             value={identifier}
-            onChange={(event) => setIdentifier(event.target.value)}
+            onChange={handleIdentifierChange}
             placeholder="admin@yourdomain.com"
             autoComplete="username"
+            aria-invalid={Boolean(fieldErrors.identifier)}
+            aria-describedby={fieldErrors.identifier ? 'identifier-error' : undefined}
+            className={fieldErrors.identifier ? 'input-error' : undefined}
           />
+          {fieldErrors.identifier ? (
+            <p id="identifier-error" className="field-error">
+              {fieldErrors.identifier}
+            </p>
+          ) : null}
 
           <label htmlFor="password">Password</label>
           <input
             id="password"
             type="password"
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={handlePasswordChange}
             placeholder="Enter your password"
             autoComplete="current-password"
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+            className={fieldErrors.password ? 'input-error' : undefined}
           />
+          {fieldErrors.password ? (
+            <p id="password-error" className="field-error">
+              {fieldErrors.password}
+            </p>
+          ) : null}
 
-          {loginError ? <p className="error-text">{loginError}</p> : null}
+          {loginError ? (
+            <p className="error-text" role="alert">
+              {loginError}
+            </p>
+          ) : null}
 
           <button type="submit" className="primary-btn" disabled={isSubmitting}>
             {isSubmitting ? 'Signing in...' : 'Sign in'}
