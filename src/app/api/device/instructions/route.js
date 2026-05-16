@@ -6,7 +6,7 @@ import {
   WeatherConfigError,
   WeatherRequestError,
   WeatherResponseError,
-} from '@services/weatherService'
+} from '@/services/weatherService'
 
 export async function GET(request) {
   const client = getServerClient()

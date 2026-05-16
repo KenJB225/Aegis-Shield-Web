@@ -5,7 +5,7 @@ import {
   serverConfigError,
   toBoundedInt,
   toPositiveInt,
-} from '@api/common'
+} from '@/api/common'
 
 async function getActivityLogs(request) {
   const client = getServerClient()
