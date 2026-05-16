@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerClient, serverConfigError, toBoundedInt } from '@api/common'
+import { getServerClient, serverConfigError, toBoundedInt } from '@/api/common'
 
 export async function GET(request, { params }) {
   const client = getServerClient()

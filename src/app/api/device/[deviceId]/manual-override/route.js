@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerClient, serverConfigError } from '@api/common'
+import { getServerClient, serverConfigError } from '@/api/common'
 
 const allowedActions = new Set(['DOCK', 'EXTEND'])
 

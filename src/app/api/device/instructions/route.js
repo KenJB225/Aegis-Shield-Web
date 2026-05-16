@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerClient, serverConfigError } from '@api/common'
+import { getServerClient, serverConfigError } from '@/api/common'
 import {
   fetchRainProbability,
   resolveWeatherCoordinates,

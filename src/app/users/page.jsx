@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { edgeApi } from '@api/lib/api/edgeClient'
-import '@styles/App.css'
+import { createClient } from '@/supabase/supabase-js'
+import { edgeApi } from '@/api/lib/api/edgeClient'
+import '@/styles/App.css'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey =

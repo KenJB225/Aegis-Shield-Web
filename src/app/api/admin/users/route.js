@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { withAuth } from '@middleware/auth'
+import { withAuth } from '@/middleware/auth'
 import {
   getServerClient,
   serverConfigError,

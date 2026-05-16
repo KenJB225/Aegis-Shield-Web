@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/supabase/supabase-js'
 import { edgeApi } from '../../lib/api/edgeClient'
 import styles from './activity-logs.module.css'
 
