@@ -12,8 +12,10 @@ const NAV_ITEMS = [
 
 export default function FixedNav() {
   const pathname = usePathname()
+  const validRoutes = ['/dashboard', '/users', '/activity-logs', '/settings']
+  const isValidRoute = validRoutes.some(route => pathname === route || pathname.startsWith(route + '/'))
 
-  if (pathname === '/login') {
+  if (pathname === '/login' || !isValidRoute) {
     return null
   }
 
