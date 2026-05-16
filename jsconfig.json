@@ -7,7 +7,9 @@
       "@/utils/*": ["utils/*"],
       "@/middleware/*": ["lib/middleware/*"],
       "@/api/*": ["lib/api/*"],
-      "@/styles/*":["styles/*"]
+      "@/styles/*": ["styles/*"],
+      "@/supabase/*": ["lib/supabase/*"],
+      "@/lib/*": ["lib/*"] 
     }
   }
 }
