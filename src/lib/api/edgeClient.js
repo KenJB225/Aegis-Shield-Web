@@ -122,6 +122,14 @@ export const edgeApi = {
     return edgeRequest(`/admin/users/${userId}`, { token })
   },
 
+  adminUserUpdate(token, userId, updates) {
+    return edgeRequest(`/admin/users/${userId}`, {
+      token,
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    })
+  },
+
   adminUserStatus(token, userId, isActive) {
     return edgeRequest(`/admin/users/${userId}/status`, {
       token,
