@@ -32,6 +32,5 @@ export const clientSide = (token) => {
   return client
 }
 
-// 2. Create a default client-side instance and export it as 'createClient' 
-// so your login page finds exactly what it's looking for!
-export const createClient = supabaseCreateClient(supabaseUrl, supabaseAnonKey)
+// 2. Export the createClient function so pages can call it with their own configuration
+export const createClient = supabaseCreateClient
