@@ -75,7 +75,7 @@ export default function UsersPage() {
           const mappedUsers = (response?.users || []).map((user, index) => ({
             id: user.user_id || user.id || `USR-${index + 1}`,
             name: user.full_name || 'Unnamed User',
-            email: user.email || user.user_id || 'N/A',
+            email: user.email || 'N/A',
             status: user.is_active ? 'Active' : 'Inactive',
             lastActive: user.updated_at
               ? new Date(user.updated_at).toLocaleString()
