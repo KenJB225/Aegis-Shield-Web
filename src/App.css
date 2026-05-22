@@ -589,6 +589,17 @@ th {
   font-size: 13px;
 }
 
+.field-error {
+  color: #dc2626;
+  margin: -2px 0 0;
+  font-size: 12px;
+}
+
+.input-error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.2);
+}
+
 .user-detail-card {
   padding: 16px;
 }
