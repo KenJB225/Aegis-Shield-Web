@@ -4,10 +4,22 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/users', label: 'Users' },
-  { href: '/activity-logs', label: 'Activity Logs' },
-  { href: '/settings', label: 'Settings' },
+  {
+    href: '/dashboard',
+    label: 'Dashboard',
+  },
+  {
+    href: '/users',
+    label: 'Users',
+  },
+  {
+    href: '/activity-logs',
+    label: 'Activity Logs',
+  },
+  {
+    href: '/settings',
+    label: 'Settings',
+  },
 ]
 
 export default function FixedNav() {

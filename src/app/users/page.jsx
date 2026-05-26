@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { edgeApi } from '../../lib/api/edgeClient'
 import '../../App.css'
@@ -21,12 +22,16 @@ const supabaseClient =
     : null
 
 export default function UsersPage() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [dataError, setDataError] = useState('')
+  const [actionError, setActionError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [users, setUsers] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [authToken, setAuthToken] = useState('')
+  const [statusUpdates, setStatusUpdates] = useState({})
 
   const rowsPerPage = 8
 
@@ -58,8 +63,13 @@ export default function UsersPage() {
         return
       }
 
+      setAuthToken(token)
+
       try {
-        const response = await edgeApi.adminUsers(token, { page: 1, limit: 200 })
+        const response = await edgeApi.adminUsers(token, {
+          page: 1,
+          limit: 200,
+        })
 
         if (!isCancelled) {
           const mappedUsers = (response?.users || []).map((user, index) => ({
@@ -126,20 +136,61 @@ export default function UsersPage() {
     })
   }
 
-  const handleToggleStatus = (userId) => {
-    setUsers((prev) =>
-      prev.map((user) => {
-        if (user.id !== userId) {
-          return user
-        }
+  const handleToggleStatus = async (userId) => {
+    setActionError('')
 
-        return {
-          ...user,
-          status: user.status === 'Active' ? 'Inactive' : 'Active',
-          lastActive: new Date().toLocaleString(),
-        }
-      }),
-    )
+    if (!authToken) {
+      setActionError('Sign in again to update user status.')
+      return
+    }
+
+    const targetUser = users.find((user) => user.id === userId)
+    if (!targetUser) {
+      setActionError('User not found for status update.')
+      return
+    }
+
+    setStatusUpdates((prev) => ({ ...prev, [userId]: true }))
+
+    const nextIsActive = targetUser.status !== 'Active'
+
+    try {
+      const response = await edgeApi.adminUserStatus(authToken, userId, nextIsActive)
+      const updatedAt = response?.updated_at
+      const resolvedActive =
+        typeof response?.is_active === 'boolean' ? response.is_active : nextIsActive
+
+      setUsers((prev) =>
+        prev.map((user) => {
+          if (user.id !== userId) {
+            return user
+          }
+
+          return {
+            ...user,
+            status: resolvedActive ? 'Active' : 'Inactive',
+            lastActive: updatedAt ? new Date(updatedAt).toLocaleString() : user.lastActive,
+          }
+        }),
+      )
+    } catch (error) {
+      setActionError(error?.message || 'Failed to update user status.')
+    } finally {
+      setStatusUpdates((prev) => {
+        const next = { ...prev }
+        delete next[userId]
+        return next
+      })
+    }
+  }
+
+  const handleEditUser = (userId) => {
+    if (!userId) {
+      setActionError('User ID is missing for edit action.')
+      return
+    }
+
+    router.push(`/users/${userId}`)
   }
 
   const firstVisible =
@@ -211,13 +262,20 @@ export default function UsersPage() {
                         <td>{user.lastActive}</td>
                         <td>
                           <div className="row-actions">
-                            <button type="button">Edit</button>
+                            <button type="button" onClick={() => handleEditUser(user.id)}>
+                              Edit
+                            </button>
                             <button
                               type="button"
                               className={user.status === 'Active' ? 'danger' : 'success'}
                               onClick={() => handleToggleStatus(user.id)}
+                              disabled={Boolean(statusUpdates[user.id])}
                             >
-                              {user.status === 'Active' ? 'Disable' : 'Enable'}
+                              {statusUpdates[user.id]
+                                ? 'Updating...'
+                                : user.status === 'Active'
+                                  ? 'Disable'
+                                  : 'Enable'}
                             </button>
                           </div>
                         </td>
@@ -246,7 +304,8 @@ export default function UsersPage() {
               </div>
             </footer>
           </article>
-          {dataError ? <p className="subtitle">{dataError}</p> : null}
+          {actionError ? <p className="error-text">{actionError}</p> : null}
+          {dataError ? <p className="error-text">{dataError}</p> : null}
         </section>
       </main>
     </div>
