@@ -42,6 +42,7 @@ export default function UserDetailPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [saveSuccess, setSaveSuccess] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({ fullName: '' })
   const [profileMeta, setProfileMeta] = useState({
     userId: '',
     profileId: '',
@@ -64,6 +65,7 @@ export default function UserDetailPage() {
       setLoadError('')
       setSaveError('')
       setSaveSuccess('')
+      setFieldErrors({ fullName: '' })
 
       if (!userId) {
         setLoadError('User ID is missing.')
@@ -146,12 +148,21 @@ export default function UserDetailPage() {
       ...prev,
       [field]: nextValue,
     }))
+
+    if (field === 'fullName' && fieldErrors.fullName) {
+      setFieldErrors((prev) => ({ ...prev, fullName: '' }))
+    }
+
+    if (saveError) {
+      setSaveError('')
+    }
   }
 
   const handleSave = async (event) => {
     event.preventDefault()
     setSaveError('')
     setSaveSuccess('')
+    setFieldErrors({ fullName: '' })
 
     if (!authToken) {
       setSaveError('Sign in again to update this user profile.')
@@ -160,7 +171,7 @@ export default function UserDetailPage() {
 
     const trimmedName = formState.fullName.trim()
     if (!trimmedName) {
-      setSaveError('Full name is required.')
+      setFieldErrors({ fullName: 'Full name is required.' })
       return
     }
 
@@ -231,11 +242,18 @@ export default function UserDetailPage() {
                   <span>Full Name</span>
                   <input
                     id="user-full-name"
-                    className="user-detail-input"
+                    className={`user-detail-input ${fieldErrors.fullName ? 'input-error' : ''}`}
                     value={formState.fullName}
                     onChange={handleFieldChange('fullName')}
                     placeholder="Enter full name"
+                    aria-invalid={Boolean(fieldErrors.fullName)}
+                    aria-describedby={fieldErrors.fullName ? 'user-full-name-error' : undefined}
                   />
+                  {fieldErrors.fullName ? (
+                    <p id="user-full-name-error" className="field-error">
+                      {fieldErrors.fullName}
+                    </p>
+                  ) : null}
                 </label>
 
                 <label className="user-detail-field" htmlFor="user-phone">

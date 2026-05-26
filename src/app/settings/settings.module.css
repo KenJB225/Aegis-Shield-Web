@@ -133,6 +133,17 @@
   color: var(--ink);
 }
 
+.inputError {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.2);
+}
+
+.fieldError {
+  margin: -2px 0 0;
+  color: #dc2626;
+  font-size: 12px;
+}
+
 .formHint {
   margin: 0;
   font-size: 12px;

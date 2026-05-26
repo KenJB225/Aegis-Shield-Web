@@ -238,6 +238,15 @@ async function fetchRainProbability(lat: number, lon: number) {
 
 function extractRouteSegments(pathname: string): string[] {
   const segments = pathname.split('/').filter(Boolean)
+  if (segments.length === 0) {
+    return []
+  }
+
+  // Local dev uses /functions/v1/aegis-api/...
+  if (segments[0] === 'functions' && segments[1] === 'v1') {
+    return segments.length > 3 ? segments.slice(3) : []
+  }
+
   if (segments.length <= 1) {
     return []
   }
@@ -557,8 +566,72 @@ async function handleAdminUsers(
     return jsonResponse({ error: 'Failed to fetch users' }, 500)
   }
 
+  const users = data ?? []
+  const userIds = users.map((user) => user?.user_id).filter(Boolean)
+
+  let emailByUserId = new Map<string, string | null>()
+  if (userIds.length > 0) {
+    const remainingIds = new Set(userIds)
+    const perPage = Math.min(1000, Math.max(userIds.length, 100))
+    let pageIndex = 1
+    let shouldContinue = true
+
+    while (remainingIds.size > 0 && shouldContinue) {
+      const { data: authList, error: authListError } = await client.auth.admin.listUsers({
+        page: pageIndex,
+        perPage,
+      })
+
+      if (authListError || !Array.isArray(authList?.users)) {
+        break
+      }
+
+      for (const authUser of authList.users) {
+        if (remainingIds.has(authUser.id)) {
+          emailByUserId.set(authUser.id, authUser.email ?? null)
+          remainingIds.delete(authUser.id)
+        }
+      }
+
+      const nextPage =
+        typeof authList?.nextPage === 'number' && authList.nextPage > pageIndex
+          ? authList.nextPage
+          : null
+
+      if (nextPage) {
+        pageIndex = nextPage
+        continue
+      }
+
+      if (authList.users.length < perPage) {
+        shouldContinue = false
+        continue
+      }
+
+      pageIndex += 1
+    }
+
+    if (emailByUserId.size === 0) {
+      const { data: authUsers, error: authError } = await client
+        .from('users', { schema: 'auth' })
+        .select('id, email')
+        .in('id', userIds)
+
+      if (!authError && Array.isArray(authUsers)) {
+        emailByUserId = new Map(
+          authUsers.map((authUser) => [authUser.id, authUser.email ?? null]),
+        )
+      }
+    }
+  }
+
+  const usersWithEmail = users.map((user) => ({
+    ...user,
+    email: user?.user_id ? emailByUserId.get(user.user_id) ?? null : null,
+  }))
+
   return jsonResponse({
-    users: data ?? [],
+    users: usersWithEmail,
     total: count ?? 0,
     page,
     limit,

@@ -35,6 +35,10 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
+  const [passwordFieldErrors, setPasswordFieldErrors] = useState({
+    newPassword: '',
+    confirmPassword: '',
+  })
   const [passwordSuccess, setPasswordSuccess] = useState('')
 
   const supabaseConfigError =
@@ -66,19 +70,28 @@ export default function SettingsPage() {
     event.preventDefault()
     setPasswordError('')
     setPasswordSuccess('')
+    setPasswordFieldErrors({ newPassword: '', confirmPassword: '' })
 
     if (!supabaseClient) {
       setPasswordError(supabaseConfigError)
       return
     }
 
-    if (!newPassword || !confirmPassword) {
-      setPasswordError('Enter and confirm your new password.')
-      return
+    const nextFieldErrors = {
+      newPassword: newPassword ? '' : 'Enter a new password.',
+      confirmPassword: confirmPassword ? '' : 'Re-enter your new password.',
     }
 
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match. Please try again.')
+    if (newPassword && newPassword.length < 8) {
+      nextFieldErrors.newPassword = 'Passwords must be at least 8 characters.'
+    }
+
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+      nextFieldErrors.confirmPassword = 'Passwords do not match. Please try again.'
+    }
+
+    if (nextFieldErrors.newPassword || nextFieldErrors.confirmPassword) {
+      setPasswordFieldErrors(nextFieldErrors)
       return
     }
 
@@ -96,6 +109,32 @@ export default function SettingsPage() {
     setNewPassword('')
     setConfirmPassword('')
     setIsUpdatingPassword(false)
+  }
+
+  const handleNewPasswordChange = (event) => {
+    const nextValue = event.target.value
+    setNewPassword(nextValue)
+
+    if (passwordFieldErrors.newPassword) {
+      setPasswordFieldErrors((prev) => ({ ...prev, newPassword: '' }))
+    }
+
+    if (passwordError) {
+      setPasswordError('')
+    }
+  }
+
+  const handleConfirmPasswordChange = (event) => {
+    const nextValue = event.target.value
+    setConfirmPassword(nextValue)
+
+    if (passwordFieldErrors.confirmPassword) {
+      setPasswordFieldErrors((prev) => ({ ...prev, confirmPassword: '' }))
+    }
+
+    if (passwordError) {
+      setPasswordError('')
+    }
   }
 
   return (
@@ -152,29 +191,46 @@ export default function SettingsPage() {
             <span>New Password</span>
             <input
               id="new-password"
-              className={styles.textInput}
+              className={`${styles.textInput} ${passwordFieldErrors.newPassword ? styles.inputError : ''}`}
               type="password"
               value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
+              onChange={handleNewPasswordChange}
               autoComplete="new-password"
               minLength={8}
               placeholder="Enter a new password"
+              aria-invalid={Boolean(passwordFieldErrors.newPassword)}
+              aria-describedby={passwordFieldErrors.newPassword ? 'new-password-error' : undefined}
             />
+            {passwordFieldErrors.newPassword ? (
+              <p id="new-password-error" className={styles.fieldError}>
+                {passwordFieldErrors.newPassword}
+              </p>
+            ) : (
+              <p className={styles.formHint}>Passwords must be at least 8 characters.</p>
+            )}
           </label>
           <label className={styles.inputField} htmlFor="confirm-password">
             <span>Confirm Password</span>
             <input
               id="confirm-password"
-              className={styles.textInput}
+              className={`${styles.textInput} ${passwordFieldErrors.confirmPassword ? styles.inputError : ''}`}
               type="password"
               value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
+              onChange={handleConfirmPasswordChange}
               autoComplete="new-password"
               minLength={8}
               placeholder="Re-enter your new password"
+              aria-invalid={Boolean(passwordFieldErrors.confirmPassword)}
+              aria-describedby={
+                passwordFieldErrors.confirmPassword ? 'confirm-password-error' : undefined
+              }
             />
+            {passwordFieldErrors.confirmPassword ? (
+              <p id="confirm-password-error" className={styles.fieldError}>
+                {passwordFieldErrors.confirmPassword}
+              </p>
+            ) : null}
           </label>
-          <p className={styles.formHint}>Passwords must be at least 8 characters.</p>
           {passwordError ? <p className={styles.errorText}>{passwordError}</p> : null}
           {passwordSuccess ? <p className={styles.successText}>{passwordSuccess}</p> : null}
           <div className={styles.buttonRow}>

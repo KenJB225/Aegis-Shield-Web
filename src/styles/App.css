@@ -47,6 +47,11 @@
   color: var(--ink);
 }
 
+.login-form input.input-error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.2);
+}
+
 .primary-btn {
   margin-top: 10px;
   height: 44px;
@@ -62,6 +67,12 @@
   color: #dc2626;
   margin: 2px 0;
   font-size: 13px;
+}
+
+.field-error {
+  color: #dc2626;
+  margin: -4px 0 4px;
+  font-size: 12px;
 }
 
 .mock-note {
@@ -576,6 +587,17 @@ th {
   color: #16a34a;
   margin: 2px 0;
   font-size: 13px;
+}
+
+.field-error {
+  color: #dc2626;
+  margin: -2px 0 0;
+  font-size: 12px;
+}
+
+.input-error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.2);
 }
 
 .user-detail-card {
