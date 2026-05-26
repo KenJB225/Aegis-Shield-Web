@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/supabase/supabase-js'
 import { edgeApi } from '@/api/edgeClient'
+import React, { useState, useMemo, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 const initialUsers = [
   {
@@ -178,6 +180,78 @@ const supabaseClient =
         },
       })
     : null
+
+    function App() {
+      const [isDarkMode, setIsDarkMode] = useState(false);
+    
+      return (
+        <Router>
+          <div className={`app-shell ${isDarkMode ? 'theme-dark' : ''}`}>
+            <aside className="sidebar">
+              <div className="brand">
+                <span className="shield">A</span>
+                <div>
+                  <strong>Aegis-Dry</strong>
+                  <small>Admin Panel</small>
+                </div>
+              </div>
+    
+              <nav className="menu">
+                <a href="/" className="menu-item">
+                  Dashboard
+                </a>
+                <a href="/users" className="menu-item">
+                  Users
+                </a>
+              </nav>
+    
+              <button type="button" className="logout-btn">
+                Logout
+              </button>
+            </aside>
+    
+            <div className="content-area">
+              <header className="topbar">
+                <h2>Aegis-Dry Admin Panel</h2>
+                <div className="topbar-tools">
+                  <div className="theme-toggle">
+                    <label className="switch">
+                      <input
+                        type="checkbox"
+                        checked={isDarkMode}
+                        onChange={() => setIsDarkMode((prev) => !prev)}
+                      />
+                      <span />
+                    </label>
+                  </div>
+                </div>
+              </header>
+    
+              <main className="page-view">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/users" element={<Users />} />
+                </Routes>
+              </main>
+            </div>
+          </div>
+        </Router>
+      );
+    }
+
+  const Dashboard = () => (
+    <section>
+      <h1>Dashboard Overview</h1>
+      <p>Monitor your Aegis-Dry system at a glance.</p>
+    </section>
+  );
+
+  const Users = () => (
+    <section>
+      <h1>User Management</h1>
+      <p>Manage all registered users and their accounts.</p>
+    </section>
+  );
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
@@ -660,4 +734,5 @@ function App() {
   )
 }
 
-export default App
+export default App;
+
