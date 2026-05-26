@@ -2,6 +2,10 @@
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
     "baseUrl": "src",
+    "lib": [
+      "ES2015",
+      "DOM"
+    ],
     "paths": {
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
@@ -10,24 +14,7 @@
       "@/api/*": ["lib/api/*"],
       "@/styles/*": ["styles/*"],
       "@/supabase/*": ["lib/supabase/*"],
-      "@/lib/*": ["lib/*"] 
+      "@/lib/*": ["lib/*"]
     }
   }
 }
-      "ignoreDeprecations": "6.0",
-      "baseUrl": "src",
-      "lib": [
-        "ES2015",
-        "DOM"
-      ],
-      "paths": {
-        "@/components/*": ["components/*"],
-        "@/pages/*": ["pages/*"],
-        "@/utils/*": ["utils/*"],
-        "@/middleware/*": ["lib/middleware/*"],
-        "@/api/*": ["lib/api/*"],
-        "@/styles/*": ["styles/*"],
-        "@/supabase/*": ["lib/supabase/*"],
-        "@/lib/*": ["lib/*"]
-      }
-    }
