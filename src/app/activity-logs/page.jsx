@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { edgeApi } from '../../lib/api/edgeClient'
-import styles from './activity-logs.module.css'
+import { createClient } from '@/supabase/supabase-js'
+import { edgeApi } from '@/api/edgeClient'
+import styles from '@/styles/activity-logs.module.css'
 
 export default function ActivityLogsPage() {
   const [isLoading, setIsLoading] = useState(true)

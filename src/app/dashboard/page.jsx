@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
-import { edgeApi } from '../../lib/api/edgeClient'
-import styles from './page.module.css'
+import { createClient } from '@/supabase/supabase-js'
+import { edgeApi } from '@/api/edgeClient'
+import styles from '@/styles/page.module.css'
 
 const initialUsers = []
 const initialRecentActivity = []

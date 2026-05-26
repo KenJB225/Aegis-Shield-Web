@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { edgeApi } from './lib/api/edgeClient'
+import { createClient } from '@/supabase/supabase-js'
+import { edgeApi } from '@/api/edgeClient'
 
 const initialUsers = [
   {

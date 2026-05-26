@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerClient, serverConfigError } from '../../../../lib/api/common'
+import { getServerClient, serverConfigError } from '@/api/common'
 import {
   fetchRainProbability,
   resolveWeatherCoordinates,
   WeatherConfigError,
   WeatherRequestError,
   WeatherResponseError,
-} from '../../../../lib/services/weatherService'
+} from '@/services/weatherService'
 
 export async function GET(request) {
   const client = getServerClient()
