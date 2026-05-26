@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+// 1. Fix line 1 to import from the official installed package (no slash!)
+import { createClient as supabaseCreateClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -9,7 +10,7 @@ const supabaseAnonKey =
 
 export const serverClient =
   supabaseUrl && supabaseServiceKey
-    ? createClient(supabaseUrl, supabaseServiceKey)
+    ? supabaseCreateClient(supabaseUrl, supabaseServiceKey) // Updated function call
     : null
 
 export const clientSide = (token) => {
@@ -19,7 +20,7 @@ export const clientSide = (token) => {
     )
   }
 
-  const client = createClient(supabaseUrl, supabaseAnonKey)
+  const client = supabaseCreateClient(supabaseUrl, supabaseAnonKey) // Updated function call
 
   if (token) {
     client.auth.setSession({
@@ -30,3 +31,6 @@ export const clientSide = (token) => {
 
   return client
 }
+
+// 2. Export the createClient function so pages can call it with their own configuration
+export const createClient = supabaseCreateClient
