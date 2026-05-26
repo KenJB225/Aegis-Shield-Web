@@ -20,19 +20,31 @@ const supabaseClient =
       })
     : null
 
+const AUTH_COOKIE_NAME = 'aegis_admin_token'
+
+const clearAuthCookie = () => {
+  document.cookie = `${AUTH_COOKIE_NAME}=; path=/; samesite=lax; max-age=0`
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  const supabaseConfigError =
+    'Supabase client is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
 
   const handleLogout = async () => {
     setLogoutError('')
 
     if (!supabaseClient) {
-      setLogoutError(
-        'Supabase client is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.',
-      )
+      setLogoutError(supabaseConfigError)
       return
     }
 
@@ -46,7 +58,44 @@ export default function SettingsPage() {
       return
     }
 
+    clearAuthCookie()
     router.replace('/login')
+  }
+
+  const handlePasswordUpdate = async (event) => {
+    event.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess('')
+
+    if (!supabaseClient) {
+      setPasswordError(supabaseConfigError)
+      return
+    }
+
+    if (!newPassword || !confirmPassword) {
+      setPasswordError('Enter and confirm your new password.')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match. Please try again.')
+      return
+    }
+
+    setIsUpdatingPassword(true)
+
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword })
+
+    if (error) {
+      setPasswordError(error.message || 'Unable to update password. Please try again.')
+      setIsUpdatingPassword(false)
+      return
+    }
+
+    setPasswordSuccess('Password updated successfully.')
+    setNewPassword('')
+    setConfirmPassword('')
+    setIsUpdatingPassword(false)
   }
 
   return (
@@ -91,6 +140,49 @@ export default function SettingsPage() {
         <p className={styles.themeLine}>
           Current Theme: <strong>{isDarkMode ? 'Dark Mode' : 'Light Mode'}</strong>
         </p>
+      </article>
+
+      <article className={styles.card}>
+        <header>
+          <p className={styles.cardTitle}>Password Update</p>
+          <small>Change your administrator password</small>
+        </header>
+        <form className={styles.formGrid} onSubmit={handlePasswordUpdate}>
+          <label className={styles.inputField} htmlFor="new-password">
+            <span>New Password</span>
+            <input
+              id="new-password"
+              className={styles.textInput}
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              placeholder="Enter a new password"
+            />
+          </label>
+          <label className={styles.inputField} htmlFor="confirm-password">
+            <span>Confirm Password</span>
+            <input
+              id="confirm-password"
+              className={styles.textInput}
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              placeholder="Re-enter your new password"
+            />
+          </label>
+          <p className={styles.formHint}>Passwords must be at least 8 characters.</p>
+          {passwordError ? <p className={styles.errorText}>{passwordError}</p> : null}
+          {passwordSuccess ? <p className={styles.successText}>{passwordSuccess}</p> : null}
+          <div className={styles.buttonRow}>
+            <button type="submit" className={styles.primaryButton} disabled={isUpdatingPassword}>
+              {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </form>
       </article>
 
       <article className={styles.card}>

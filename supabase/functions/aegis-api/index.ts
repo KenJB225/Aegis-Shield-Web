@@ -590,6 +590,88 @@ async function handleAdminUserById(
   })
 }
 
+async function handleAdminUserUpdate(
+  request: Request,
+  userId: string,
+  client: NonNullable<ReturnType<typeof getServiceClient>>,
+) {
+  const body = await request.json().catch(() => null)
+
+  if (!body || typeof body !== 'object') {
+    return jsonResponse({ error: 'Request body is required.' }, 400)
+  }
+
+  const updates: Record<string, unknown> = {}
+
+  if (Object.prototype.hasOwnProperty.call(body, 'full_name')) {
+    if (typeof body.full_name !== 'string') {
+      return jsonResponse({ error: 'full_name must be a string.' }, 400)
+    }
+
+    const trimmedName = body.full_name.trim()
+    if (!trimmedName) {
+      return jsonResponse({ error: 'full_name cannot be empty.' }, 400)
+    }
+
+    updates.full_name = trimmedName
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'phone')) {
+    if (body.phone === null || body.phone === '') {
+      updates.phone = null
+    } else if (typeof body.phone === 'string') {
+      updates.phone = body.phone.trim() || null
+    } else {
+      return jsonResponse({ error: 'phone must be a string or null.' }, 400)
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'company_name')) {
+    if (body.company_name === null || body.company_name === '') {
+      updates.company_name = null
+    } else if (typeof body.company_name === 'string') {
+      updates.company_name = body.company_name.trim() || null
+    } else {
+      return jsonResponse({ error: 'company_name must be a string or null.' }, 400)
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'role')) {
+    if (typeof body.role !== 'string') {
+      return jsonResponse({ error: 'role must be a string.' }, 400)
+    }
+
+    const normalizedRole = body.role.trim().toUpperCase()
+    if (normalizedRole !== 'USER' && normalizedRole !== 'SUPER_ADMIN') {
+      return jsonResponse({ error: 'role must be USER or SUPER_ADMIN.' }, 400)
+    }
+
+    updates.role = normalizedRole
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return jsonResponse({ error: 'No valid updates provided.' }, 400)
+  }
+
+  updates.updated_at = new Date().toISOString()
+
+  const { data, error } = await client
+    .from('user_profiles')
+    .update(updates)
+    .eq('user_id', userId)
+    .select('user_id, full_name, phone, company_name, role, is_active, created_at, updated_at')
+    .single()
+
+  if (error || !data) {
+    return jsonResponse({ error: 'Failed to update user profile' }, 500)
+  }
+
+  return jsonResponse({
+    success: true,
+    ...data,
+  })
+}
+
 async function handleAdminUserStatus(
   request: Request,
   userId: string,
@@ -745,6 +827,10 @@ Deno.serve(async (request: Request) => {
 
       if (routeSegments.length === 3 && routeSegments[1] === 'users' && request.method === 'GET') {
         return await handleAdminUserById(routeSegments[2], client)
+      }
+
+      if (routeSegments.length === 3 && routeSegments[1] === 'users' && request.method === 'PUT') {
+        return await handleAdminUserUpdate(request, routeSegments[2], client)
       }
 
       if (

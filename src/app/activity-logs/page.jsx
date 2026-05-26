@@ -54,7 +54,10 @@ export default function ActivityLogsPage() {
       }
 
       try {
-        const response = await edgeApi.adminActivityLogs(token, { page: 1, limit: 200 })
+        const response = await edgeApi.adminActivityLogs(token, {
+          page: 1,
+          limit: 200,
+        })
 
         if (!isCancelled) {
           const mappedLogs = (response?.logs || []).map((log, index) => ({
