@@ -1,5 +1,5 @@
-import './globals.css'
-import FixedNav from './FixedNav'
+import '@/styles/globals.css'
+import FixedNav from '@/components/FixedNav'
 
 export const metadata = {
   title: 'Aegis-Dry Admin Panel',

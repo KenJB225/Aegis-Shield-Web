@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { edgeApi } from '@utils/lib/api/edgeClient'
+import { createClient } from '@/supabase/supabase-js'
+import { edgeApi } from '@/api/edgeClient'
 import React, { useState, useMemo, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import NotFound from '@component/NotFound';
 
 const initialUsers = [
   {
@@ -232,7 +231,6 @@ const supabaseClient =
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/users" element={<Users />} />
-                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
             </div>
