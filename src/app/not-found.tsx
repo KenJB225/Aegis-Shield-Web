@@ -1,21 +1,20 @@
 import Link from "next/link";
+import styles from "./not-found.module.css";
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen items-center justify-center py-4 py-18">
-      <div className="glass-card w-full max-w-md border border-[#312124]/12 p-8 text-center py-3 py-1 text-sm font-bold text-black w-text-text-6d">
-        <h1 className="mt-5 text-3xl font-bold text-black w-text-6d">
-          Page Not Found
-        </h1>
+    <main className={styles.container}>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <img src="/images/404-illustration.svg" alt="Not found illustration" className={styles.illustration} />
+          <h1 className={styles.title}>Page Not Found</h1>
+        </div>
 
-        <p>
+        <p className={styles.description}>
           The page you are trying to visit does not exist or may have been moved.
         </p>
 
-        <Link
-          href="/dashboard"
-          className="btn-primary mt-8 inline-flex items-center justify-center py-4 py-3"
-        >
+        <Link href="/dashboard" className={styles.backLink}>
           Back to Home
         </Link>
       </div>
