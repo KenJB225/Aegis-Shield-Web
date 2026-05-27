@@ -2,7 +2,10 @@ import '@/styles/globals.css'
 import FixedNav from '@/components/FixedNav'
 
 export const metadata = {
-  title: 'Aegis-Dry Admin Panel',
+  title: {
+    default: 'Aegis-Dry Admin Panel',
+    template: '%s | Aegis-Dry Admin Panel',
+  },
   description: 'Unified Next.js web and backend project for Aegis-Dry.',
 }
 
