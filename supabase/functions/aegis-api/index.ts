@@ -242,7 +242,7 @@ function extractRouteSegments(pathname: string): string[] {
     return []
   }
 
-  // Local dev uses /functions/v1/aegis-api/...
+  // Local dev uses /functions/v1/sun-dry-api/...
   if (segments[0] === 'functions' && segments[1] === 'v1') {
     return segments.length > 3 ? segments.slice(3) : []
   }
@@ -251,7 +251,7 @@ function extractRouteSegments(pathname: string): string[] {
     return []
   }
 
-  // First segment is the function name (e.g. /aegis-api/...).
+  // First segment is the function name (e.g. /sun-dry-api/...).
   return segments.slice(1)
 }
 
@@ -831,7 +831,7 @@ Deno.serve(async (request: Request) => {
     if (routeSegments.length === 1 && routeSegments[0] === 'health' && request.method === 'GET') {
       return jsonResponse({
         status: 'ok',
-        service: 'aegis-edge-functions',
+        service: 'sun-dry-edge-functions',
         timestamp: new Date().toISOString(),
       })
     }

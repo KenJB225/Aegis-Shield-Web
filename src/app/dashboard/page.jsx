@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/supabase/supabase-js'
 import { edgeApi } from '@/api/edgeClient'
 import styles from '@/styles/page.module.css'
+import { mockUsers, mockActivityLogs, mockRecentActivity, mockTrend } from '@/lib/mockData'
 
 const initialUsers = []
 const initialRecentActivity = []
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [dashboardStats, setDashboardStats] = useState(null)
   const [loadingRemoteData, setLoadingRemoteData] = useState(false)
   const [dataError, setDataError] = useState('')
+  const [trendData, setTrendData] = useState(trend)
 
   const counts = useMemo(() => {
     if (dashboardStats) {
@@ -51,17 +53,17 @@ export default function DashboardPage() {
   }, [users, dashboardStats])
 
   const chartPath = useMemo(() => {
-    if (trend.length === 0) {
+    if (trendData.length === 0) {
       return ''
     }
 
-    const max = Math.max(...trend)
-    const min = Math.min(...trend)
+    const max = Math.max(...trendData)
+    const min = Math.min(...trendData)
     const width = 560
     const height = 240
-    const xStep = width / (trend.length - 1)
+    const xStep = width / (trendData.length - 1)
 
-    return trend
+    return trendData
       .map((value, index) => {
         const x = index * xStep
         const y =
@@ -71,7 +73,7 @@ export default function DashboardPage() {
         return `${index === 0 ? 'M' : 'L'}${x},${y}`
       })
       .join(' ')
-  }, [])
+  }, [trendData])
 
   useEffect(() => {
     let isCancelled = false
@@ -111,6 +113,8 @@ export default function DashboardPage() {
 
         if (mappedUsers.length > 0) {
           setUsers(mappedUsers)
+        } else {
+          setUsers(mockUsers)
         }
 
         const mappedLogs = (logsResponse?.logs || []).map((log, index) => ({
@@ -125,6 +129,12 @@ export default function DashboardPage() {
 
         if (mappedLogs.length > 0) {
           setRecentActivity(mappedLogs.slice(0, 8))
+        } else {
+          setRecentActivity(mockRecentActivity.slice(0, 8))
+        }
+
+        if (trend.length === 0) {
+          setTrendData(mockTrend)
         }
       } catch (error) {
         if (!isCancelled) {
@@ -181,7 +191,7 @@ export default function DashboardPage() {
     <main className={styles.pageView}>
       <section>
         <h1>Dashboard Overview</h1>
-        <p className={styles.subtitle}>Monitor your Aegis-Dry system at a glance</p>
+        <p className={styles.subtitle}>Monitor your Sun-Dry system at a glance</p>
 
         {loadingRemoteData ? <p className={styles.subtitle}>Loading live data from Edge API...</p> : null}
         {dataError ? <p className={styles.errorText}>{dataError}</p> : null}
@@ -207,7 +217,7 @@ export default function DashboardPage() {
         <div className={styles.dashboardGrid}>
           <article className={`${styles.card} ${styles.chartCard}`}>
             <p className={styles.cardTitle}>User Activity Trend</p>
-            {trend.length > 0 ? (
+            {trendData.length > 0 ? (
               <svg viewBox="0 0 560 260" role="img" aria-label="User activity chart">
                 <g className={styles.gridLines}>
                   {[0, 1, 2, 3, 4].map((line) => (

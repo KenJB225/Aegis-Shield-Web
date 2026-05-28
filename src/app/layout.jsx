@@ -3,10 +3,10 @@ import FixedNav from '@/components/FixedNav'
 
 export const metadata = {
   title: {
-    default: 'Aegis-Dry Admin Panel',
-    template: '%s | Aegis-Dry Admin Panel',
+    default: 'Sun-Dry Admin Panel',
+    template: '%s | Sun-Dry Admin Panel',
   },
-  description: 'Unified Next.js web and backend project for Aegis-Dry.',
+  description: 'Unified Next.js web and backend project for Sun-Dry.',
 }
 
 export default function RootLayout({ children }) {

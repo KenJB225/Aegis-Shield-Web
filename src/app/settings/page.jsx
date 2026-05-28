@@ -261,11 +261,11 @@ export default function SettingsPage() {
       <article className={styles.card}>
         <header>
           <p className={styles.cardTitle}>System Information</p>
-          <small>Aegis-Dry admin panel details</small>
+          <small>Sun-Dry admin panel details</small>
         </header>
         <div className={styles.profileGrid}>
           <p>System Name</p>
-          <strong>Aegis-Dry Smart Laundry</strong>
+          <strong>Sun-Dry Smart Laundry</strong>
           <p>Version</p>
           <strong>v1.0.0</strong>
         </div>

@@ -33,3 +33,5 @@ out
 # Supabase local CLI metadata
 supabase/.temp/
 supabase/.branches/
+.vercel
+.env*.local

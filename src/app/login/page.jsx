@@ -126,7 +126,7 @@ export default function LoginPage() {
   return (
     <div className="login-shell">
       <div className="login-panel">
-        <p className="eyebrow">Aegis-Dry</p>
+        <p className="eyebrow">Sun-Dry</p>
         <h1>Super Admin Login</h1>
         <p className="subtext">
           Access the admin dashboard and manage users, activity logs, and system settings.

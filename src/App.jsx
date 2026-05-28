@@ -191,7 +191,7 @@ const supabaseClient =
               <div className="brand">
                 <span className="shield">A</span>
                 <div>
-                  <strong>Aegis-Dry</strong>
+                    <strong>Sun-Dry</strong>
                   <small>Admin Panel</small>
                 </div>
               </div>
@@ -212,7 +212,7 @@ const supabaseClient =
     
             <div className="content-area">
               <header className="topbar">
-                <h2>Aegis-Dry Admin Panel</h2>
+                  <h2>Sun-Dry Admin Panel</h2>
                 <div className="topbar-tools">
                   <div className="theme-toggle">
                     <label className="switch">
@@ -242,7 +242,7 @@ const supabaseClient =
   const Dashboard = () => (
     <section>
       <h1>Dashboard Overview</h1>
-      <p>Monitor your Aegis-Dry system at a glance.</p>
+        <p>Monitor your Sun-Dry system at a glance.</p>
     </section>
   );
 

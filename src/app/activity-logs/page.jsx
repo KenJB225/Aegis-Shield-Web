@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/supabase/supabase-js'
 import { edgeApi } from '@/api/edgeClient'
 import styles from '@/styles/activity-logs.module.css'
+import { mockActivityLogs } from '@/lib/mockData'
 
 export default function ActivityLogsPage() {
   const [isLoading, setIsLoading] = useState(true)
@@ -70,7 +71,11 @@ export default function ActivityLogsPage() {
             type: log.resource_type || 'System',
           }))
 
-          setLogs(mappedLogs)
+          if (mappedLogs.length > 0) {
+            setLogs(mappedLogs)
+          } else {
+            setLogs(mockActivityLogs)
+          }
         }
       } catch (error) {
         if (!isCancelled) {
